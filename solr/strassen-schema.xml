@@ -72,7 +72,6 @@
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
-  <field name="kreis_name" type="name_fold" stored="true"/>
   <field name="strasse_name" type="name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>

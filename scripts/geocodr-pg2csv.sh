@@ -33,7 +33,6 @@ pg2csv $CSV_OUTDIR/gemeinden.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
-  kreis_name,
   gemeinde_name,
   to_jsonb(gemeinden) - 'geometrie' AS json
 FROM gemeinden
@@ -46,7 +45,6 @@ pg2csv $CSV_OUTDIR/gemeindeteile.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
-  kreis_name,
   gemeinde_name,
   gemeindeteil_name,
   to_jsonb(gemeindeteile) - 'geometrie' AS json
@@ -56,11 +54,10 @@ END
 )"
 
 
-pg2csv $CSV_OUTDIR/strassen_mit_gemeindeteil.csv "$(cat << END
+pg2csv $CSV_OUTDIR/strassen.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Simplify(geometrie, 1)) AS geometrie,
-  kreis_name,
   gemeinde_name,
   gemeindeteil_name,
   strasse_name,

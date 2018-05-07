@@ -127,7 +127,7 @@ class Gemeinden(Collection):
     class_title = 'Adresse'
     name = 'gemeinden'
     title = u'Gemeinde'
-    fields = ('gemeinde_name', 'kreis_name')
+    fields = ('gemeinde_name',)
     qfields = (
         NGramField('gemeinde_name_ngram') ^ 2.4,
         # higher then gemeindeteil_name in GemeindeTeile
@@ -137,13 +137,20 @@ class Gemeinden(Collection):
     sort_fields = ('gemeinde_name', )
     collection_rank = 1
 
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        return u', '.join(parts)
+
 
 class GemeindeTeile(Collection):
     class_ = 'address'
     class_title = 'Adresse'
     name = 'gemeindeteile'
     title = u'Gemeindeteil'
-    fields = ('gemeinde_name', 'gemeindeteil_name', 'kreis_name')
+    fields = ('gemeinde_name', 'gemeindeteil_name')
     qfields = (
         NGramField('gemeindeteil_name_ngram') ^ 1.3,
         SimpleField('gemeindeteil_name') ^ 3.3,
