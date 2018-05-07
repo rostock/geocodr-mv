@@ -42,6 +42,16 @@ class Strassen(Collection):
     sort_fields = ('gemeinde_name', 'strasse_name')
     collection_rank = 3
 
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        if prop['gemeindeteil_name']:
+            parts.append(prop['gemeindeteil_name'])
+        parts.append(prop['strasse_name'])
+        return u', '.join(parts)
+
 
 class Adressen(Collection):
     class_ = 'address'
@@ -50,7 +60,6 @@ class Adressen(Collection):
     title = u'Adresse'
     fields = ('strasse_name', 'gemeindeteil_name', 'gemeinde_name',
               'postleitzahl', 'hausnummer')
-
     # results with identical fields (except for different hausnummer)
     # will get the same score
     align_score_fields = ('strasse_name', 'gemeindeteil_name', 'gemeinde_name',
@@ -69,6 +78,16 @@ class Adressen(Collection):
     )
     sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, ' \
         'hausnummer_int ASC, hausnummer ASC'
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        if prop['gemeindeteil_name']:
+            parts.append(prop['gemeindeteil_name'])
+        parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
+        return u', '.join(parts)
 
     def sort_tiebreaker(self, doc):
         """
@@ -135,6 +154,15 @@ class GemeindeTeile(Collection):
     sort_fields = ('gemeinde_name', 'gemeindeteil_name')
     collection_rank = 2
 
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        if prop['gemeindeteil_name']:
+            parts.append(prop['gemeindeteil_name'])
+        return u', '.join(parts)
+
 
 class Gemarkungen(Collection):
     class_ = 'parcel'
@@ -152,6 +180,14 @@ class Gemarkungen(Collection):
     sort_fields = ('gemeinde_name', 'gemarkung_name')
     collection_rank = 1
 
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        parts.append(prop['gemarkung_name'])
+        return u', '.join(parts)
+
 
 class Fluren(Collection):
     class_ = 'parcel'
@@ -168,6 +204,15 @@ class Fluren(Collection):
     sort = 'score DESC, gemeinde_name ASC, gemarkung_name ASC, flur ASC'
     sort_fields = ('gemeinde_name', 'gemarkung_name', 'flur')
     collection_rank = 2
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        parts.append(prop['gemarkung_name'])
+        parts.append(u'Flur ' + str(int(prop['flur'], 10)))
+        return u', '.join(parts)
 
     def query(self, query):
         """
@@ -230,6 +275,18 @@ class Flurstuecke(Collection):
 
         return Collection.to_features(self, docs, **kw)
 
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts.append(prop['gemeinde_name_suchzusatz'])
+        parts.append(prop['gemarkung_name'])
+        parts.append(u'Flur ' + str(int(prop['flur'], 10)))
+        parts.append(str(int(prop['zaehler'], 10)))
+        if prop['nenner'] != '0000':
+            parts[-1] += '/' + str(int(prop['nenner'], 10))
+        return u', '.join(parts)
+
     def query(self, query):
         """
         Manually build Solr query for parcel identifiers (Flurstückkennzeichen).
@@ -283,3 +340,13 @@ class Schulen(Adressen):
         'hausnummer_int ASC, hausnummer ASC'
     sort_fields = ('gemeinde_name', 'strasse_name')
     collection_rank = 2.5
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
+        parts.append(prop['bezeichnung'])
+        parts.append(prop['art'])
+        parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
+        return u', '.join(parts)
