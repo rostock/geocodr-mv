@@ -62,6 +62,8 @@
   </fieldType>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="art" type="name_fold" stored="true"/>
+  <field name="art_ngram" type="name_ngram" stored="false"/>
   <field name="bezeichnung" type="name_fold" stored="true"/>
   <field name="bezeichnung_ngram" type="name_ngram" stored="false"/>
   <field name="gemeinde_name" type="gemeinde_name_fold" stored="true"/>
@@ -76,6 +78,7 @@
   <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
   <field name="strasse_name" type="name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
+  <copyField source="art" dest="art_ngram"/>
   <copyField source="bezeichnung" dest="bezeichnung_ngram"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>

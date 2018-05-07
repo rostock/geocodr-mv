@@ -130,6 +130,7 @@ COPY (SELECT
   uuid AS id,
   ST_AsText(geometrie) AS geometrie,
   bezeichnung,
+  art,
   strasse_name,
   postleitzahl,
   gemeindeteil_name,

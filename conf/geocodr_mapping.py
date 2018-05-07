@@ -327,11 +327,13 @@ class Schulen(Adressen):
     class_title = 'Schule'
     name = 'schulen'
     title = u'Schule'
-    fields = ('bezeichnung', 'postleitzahl', 'strasse_name',
+    fields = ('bezeichnung', 'postleitzahl', 'strasse_name', 'art',
               'hausnummer', 'gemeinde_name', 'gemeindeteil_name')
     qfields = (
-        NGramField('bezeichnung_ngram') ^ 1.8,
         SimpleField('bezeichnung') ^ 4.2,
+        NGramField('bezeichnung_ngram') ^ 1.8,
+        SimpleField('art') ^ 0.5,
+        NGramField('art_ngram') ^ 0.3,
         SimpleField('strasse_name') ^ 1.2,
         NGramField('strasse_name_ngram') ^ 0.8,
         SimpleField('gemeinde_name') ^ 0.6,
