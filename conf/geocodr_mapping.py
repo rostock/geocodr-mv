@@ -9,6 +9,7 @@ from geocodr.search import (
     SimpleField,
     PrefixField,
     Only,
+    PatternReplace,
 )
 
 gemarkung_prefix = '13' # Prefix added to 4-digit Gemarkungsnummern (13=Mecklenburg-Vorpommern)
@@ -27,6 +28,15 @@ class Collection(BaseCollection):
     field_list = '*,score,geometrie:[geo f=geometrie w=WKT]'
 
 
+def ReplaceStrasse(field):
+    """
+    Wrap field with pattern replace. We replace straße suffix with str (all
+    case-insensitive). This is already implemented in the Solr schema, but it
+    does not work with our NGramField, as we build the grams on our own.
+    A boost must be applied to the field, not this wrapped result.
+    """
+    return PatternReplace(ur'(?i)stra(ß|ss)e\b', u'str.', field)
+
 class Strassen(Collection):
     class_ = 'address'
     class_title = 'Adresse'
@@ -34,7 +44,7 @@ class Strassen(Collection):
     title = u'Straße'
     fields = ('strasse_name', 'gemeinde_name', 'gemeindeteil_name')
     qfields = (
-        NGramField('strasse_name_ngram') ^ 1.6,
+        ReplaceStrasse(NGramField('strasse_name_ngram') ^ 1.6),
         NGramField('gemeinde_name_ngram') ^ 1.2,
         SimpleField('strasse_name') ^ 3.2,
         SimpleField('gemeinde_name') ^ 2.2,
@@ -67,7 +77,7 @@ class Adressen(Collection):
                           'postleitzahl')
     qfields = (
         SimpleField('strasse_name') ^ 1.2,
-        NGramField('strasse_name_ngram') ^ 0.8,
+        ReplaceStrasse(NGramField('strasse_name_ngram') ^ 0.8),
         SimpleField('gemeinde_name') ^ 0.6,
         NGramField('gemeinde_name_ngram') ^ 0.4,
         SimpleField('gemeindeteil_name') ^ 0.8,
@@ -342,7 +352,7 @@ class Schulen(Adressen):
         SimpleField('art') ^ 0.5,
         NGramField('art_ngram') ^ 0.3,
         SimpleField('strasse_name') ^ 1.2,
-        NGramField('strasse_name_ngram') ^ 0.8,
+        ReplaceStrasse(NGramField('strasse_name_ngram') ^ 0.8),
         SimpleField('gemeinde_name') ^ 0.6,
         NGramField('gemeinde_name_ngram') ^ 0.4,
         SimpleField('gemeindeteil_name') ^ 0.8,

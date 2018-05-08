@@ -50,10 +50,18 @@
       <filter class="solr.EdgeNGramFilterFactory" maxGramSize="5" minGramSize="3"/>
     </analyzer>
   </fieldType>
+  <fieldType name="strasse_name_fold" class="solr.TextField">
+    <analyzer>
+      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]tra(ß|ss)e\b)" replacement="str."/>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.GermanNormalizationFilterFactory"/>
+    </analyzer>
+  </fieldType>
   <fieldType name="strasse_name_ngram" class="solr.TextField">
     <analyzer>
       <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\Bstr\.)" replacement=" $1"/>
-      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]traÃe\b)" replacement="str."/>
+      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]tra(ß|ss)e\b)" replacement="str."/>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
       <filter class="solr.GermanNormalizationFilterFactory"/>
@@ -76,7 +84,7 @@
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
   <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
-  <field name="strasse_name" type="name_fold" stored="true"/>
+  <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
   <copyField source="art" dest="art_ngram"/>
   <copyField source="bezeichnung" dest="bezeichnung_ngram"/>

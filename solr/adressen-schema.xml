@@ -50,10 +50,30 @@
       <filter class="solr.EdgeNGramFilterFactory" maxGramSize="5" minGramSize="3"/>
     </analyzer>
   </fieldType>
-  <fieldType name="strasse_name_ngram" class="solr.TextField">
+  <fieldType name="strasse_name_fold" class="solr.TextField">
+    <!-- Strassennamen for exact matches. -->
     <analyzer>
+      <!--  Shorten straße to str. as most names are already shortened. Also
+            reduces the influence of the term 'straße' in the search result (we
+            only match the shorter term str). -->
+      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]tra(ß|ss)e\b)" replacement="str."/>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.GermanNormalizationFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <fieldType name="strasse_name_ngram" class="solr.TextField">
+    <!-- Strassennamen as 3-gram for fuzzy search. -->
+    <analyzer>
+      <!-- Make str. suffix a separate word. This way we have only one 3-gram
+           for str, instead of three (xxs, xst and str). Improves results where
+           search term is 'haupt str' and index is 'hauptstr' (and vice versa).
+           -->
       <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\Bstr\.)" replacement=" $1"/>
-      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]traÃe\b)" replacement="str."/>
+      <!--  Shorten straße to str. as most names are already shortened. Also
+            reduces the influence of the term 'straße' in the search result (we
+            only match the shorter term str). -->
+      <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([sS]tra(ß|ss)e\b)" replacement="str."/>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
       <filter class="solr.GermanNormalizationFilterFactory"/>
@@ -72,7 +92,7 @@
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
   <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
-  <field name="strasse_name" type="name_fold" stored="true"/>
+  <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>
