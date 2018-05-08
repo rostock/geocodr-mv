@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="geocodr" version="1.6">
+  <!--
+  ===============================================
+  See adressen-schema.xml for fieldType comments.
+  ===============================================
+  -->
   <uniqueKey>id</uniqueKey>
   <fieldType name="gemeinde_name_fold" class="solr.TextField">
     <analyzer>
@@ -19,6 +24,9 @@
     </analyzer>
   </fieldType>
   <fieldType name="json" class="solr.StrField"/>
+  <!-- Location type with low distErrPct for high precision. Required for
+  Gemeindeteil geometries, as they contain tiny polygons (processing artifacts)
+  which cannot be processed by JTS(?) with standard precision. -->
   <fieldType name="location_xy_rpt_precise" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.01" format="WKT" autoIndex="true"/>
   <fieldType name="name_fold" class="solr.TextField">
     <analyzer>

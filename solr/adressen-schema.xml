@@ -2,7 +2,9 @@
 <schema name="geocodr" version="1.6">
   <uniqueKey>id</uniqueKey>
   <fieldType name="gemeinde_name_fold" class="solr.TextField">
+    <!-- Gemeindenamen for exact matches. -->
     <analyzer>
+      <!--  Remove suffixes from Gemeinde Namen (e.g. Neubukow, Stadt -> Neubukow) -->
       <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(, .*)" replacement=""/>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
@@ -10,7 +12,9 @@
     </analyzer>
   </fieldType>
   <fieldType name="gemeinde_name_ngram" class="solr.TextField">
+    <!-- Gemeindenamen as 3-gram for fuzzy search. -->
     <analyzer>
+      <!--  Remove suffixes from Gemeinde Namen (e.g. Neubukow, Stadt -> Neubukow) -->
       <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(, .*)" replacement=""/>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
@@ -19,16 +23,18 @@
     </analyzer>
   </fieldType>
   <fieldType name="hausnummer" class="solr.TextField">
+  <!--  Housenumbers including suffix (12a). -->
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
-      <filter class="solr.GermanNormalizationFilterFactory"/>
     </analyzer>
   </fieldType>
+  <!--  Numeric housenumbers for sorting. -->
   <fieldType name="hausnummer_int" class="solr.IntPointField"/>
   <fieldType name="json" class="solr.StrField"/>
   <fieldType name="location_xy_rpt" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.15" format="WKT" autoIndex="true"/>
   <fieldType name="name_fold" class="solr.TextField">
+    <!-- Generic field for exact matches. -->
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
@@ -36,6 +42,7 @@
     </analyzer>
   </fieldType>
   <fieldType name="name_ngram" class="solr.TextField">
+    <!-- Generic 3-gram for fuzzy search. -->
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
@@ -45,6 +52,7 @@
   </fieldType>
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
   <fieldType name="postleitzahl_engram" class="solr.TextField">
+    <!--  Postcodes as edge n-gram for prefix search (at least 3 digits required).-->
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.EdgeNGramFilterFactory" maxGramSize="5" minGramSize="3"/>

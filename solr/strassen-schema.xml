@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="geocodr" version="1.6">
+  <!--
+  ===============================================
+  See adressen-schema.xml for fieldType comments.
+  ===============================================
+  -->
   <uniqueKey>id</uniqueKey>
   <fieldType name="binary" class="solr.BinaryField"/>
   <fieldType name="gemeinde_name_fold" class="solr.TextField">
@@ -28,9 +33,7 @@
   </fieldType>
   <fieldType name="hausnummer_int" class="solr.IntPointField"/>
   <fieldType name="json" class="solr.StrField"/>
-  <fieldType name="location_geodetic" class="solr.RptWithGeometrySpatialField" docValues="true"/>
   <fieldType name="location_xy_rpt" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.15" format="WKT" autoIndex="true"/>
-  <fieldType name="location_xy_rpt_precise" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.01" format="WKT" autoIndex="true"/>
   <fieldType name="name_fold" class="solr.TextField">
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>

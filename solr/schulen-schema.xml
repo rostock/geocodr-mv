@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="geocodr" version="1.6">
+  <!--
+  ===============================================
+  See adressen-schema.xml for fieldType comments.
+  ===============================================
+  -->
   <uniqueKey>id</uniqueKey>
   <fieldType name="gemeinde_name_fold" class="solr.TextField">
     <analyzer>
@@ -22,7 +27,6 @@
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
-      <filter class="solr.GermanNormalizationFilterFactory"/>
     </analyzer>
   </fieldType>
   <fieldType name="hausnummer_int" class="solr.IntPointField"/>
