@@ -35,7 +35,10 @@ def ReplaceStrasse(field):
     does not work with our NGramField, as we build the grams on our own.
     A boost must be applied to the field, not this wrapped result.
     """
-    return PatternReplace(ur'(?i)stra(ß|ss)e\b', u'str.', field)
+    return PatternReplace(
+        ur'(?i)stra(ß|ss)e\b', u'str.',
+        PatternReplace(ur'\Bstr.', u' str.', field)
+    )
 
 class Strassen(Collection):
     class_ = 'address'
