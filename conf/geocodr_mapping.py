@@ -183,6 +183,7 @@ class Gemarkungen(Collection):
         SimpleField('gemarkung_name') ^ 3.5,
         NGramField('gemeinde_name_ngram') ^ 1.5,
         SimpleField('gemeinde_name') ^ 2.5,
+        SimpleField('gemarkung_schluessel') ^ 4.5,
     )
     sort = 'score DESC, gemeinde_name ASC, gemarkung_name ASC'
     sort_fields = ('gemeinde_name', 'gemarkung_name')

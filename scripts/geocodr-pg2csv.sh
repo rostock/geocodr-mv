@@ -88,6 +88,7 @@ COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
   gemarkung_name,
+  gemarkung_schluessel,
   gemeinde_name,
   to_jsonb(gemarkungen) - 'geometrie' AS json
 FROM gemarkungen
@@ -100,6 +101,7 @@ COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 1), 0)) AS geometrie,
   gemarkung_name,
+  gemarkung_schluessel,
   gemeinde_name,
   flur,
   to_jsonb(fluren) - 'geometrie' AS json

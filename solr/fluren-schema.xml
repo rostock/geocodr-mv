@@ -41,6 +41,7 @@
   <field name="flur" type="string" stored="false"/>
   <field name="gemarkung_name" type="name_fold" stored="true"/>
   <field name="gemarkung_name_ngram" type="name_ngram" stored="false"/>
+  <field name="gemarkung_schluessel" type="string" stored="false"/>
   <field name="gemeinde_name" type="gemeinde_name_fold" stored="true"/>
   <field name="gemeinde_name_ngram" type="gemeinde_name_ngram" stored="false"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
