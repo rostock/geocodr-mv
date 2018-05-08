@@ -11,6 +11,7 @@ from geocodr.search import (
     Only,
 )
 
+gemarkung_prefix = '13' # Prefix added to 4-digit Gemarkungsnummern (13=Mecklenburg-Vorpommern)
 
 class Collection(BaseCollection):
     # all geometries are in EPSG:25833
@@ -195,6 +196,11 @@ class Gemarkungen(Collection):
         parts.append(prop['gemarkung_name'])
         return u', '.join(parts)
 
+    def query(self, query):
+        if re.match(ur'^\d{4,4}$', query):
+            query = gemarkung_prefix + query
+
+        return Collection.query(self, query)
 
 class Fluren(Collection):
     class_ = 'parcel'
@@ -229,23 +235,23 @@ class Fluren(Collection):
         flurstuecksnummer and (optionaly) flur.
         """
         from geocodr.lib.flst import parse_flst
-        flst = parse_flst(query)
+        flst = parse_flst(query, gemarkung_prefix=gemarkung_prefix)
         if not flst:
             return
 
         if flst.zaehler or flst.nenner:
             return
 
-        if not flst.gemarkung_name:
-            return 'flurstuecksnummer:' + flst.gemarkung + flst.flur + '*'
-
         qparts = []
-        qparts = [Collection.query(self, flst.gemarkung_name)]
+        if flst.gemarkung_name:
+            qparts.append(Collection.query(self, flst.gemarkung_name))
+        else:
+            qparts.append(u'gemarkung_schluessel:' + flst.gemarkung)
 
         if flst.flur:
-            qparts.append('flur:' + flst.flur)
+            qparts.append(u'flur:' + flst.flur)
 
-        return '{}'.format(' AND '.join(qparts))
+        return u'{}'.format(u' AND '.join(qparts))
 
 
 class Flurstuecke(Collection):
@@ -301,25 +307,25 @@ class Flurstuecke(Collection):
         parts, from left to right.
         """
         from geocodr.lib.flst import parse_flst
-        flst = parse_flst(query)
+        flst = parse_flst(query, gemarkung_prefix=gemarkung_prefix)
         if not flst:
             return
 
         if not flst.gemarkung_name:
-            return 'flurstuecksnummer:' + flst.gemarkung + flst.flur \
-                + flst.zaehler + flst.nenner + '*'
+            return u'flurstuecksnummer:' + flst.gemarkung + flst.flur \
+                + flst.zaehler + flst.nenner + u'*'
 
         qparts = []
         qparts = [Collection.query(self, flst.gemarkung_name)]
 
         if flst.flur:
-            qparts.append('flur:' + flst.flur)
+            qparts.append(u'flur:' + flst.flur)
         if flst.nenner:
-            qparts.append('nenner:' + flst.nenner)
+            qparts.append(u'nenner:' + flst.nenner)
         if flst.zaehler:
-            qparts.append('zaehler:' + flst.zaehler)
+            qparts.append(u'zaehler:' + flst.zaehler)
 
-        return '{}'.format(' AND '.join(qparts))
+        return u'{}'.format(u' AND '.join(qparts))
 
 
 class Schulen(Adressen):
