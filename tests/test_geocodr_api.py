@@ -126,9 +126,9 @@ def client(geocodr_url, solr_url, request):
 
 
 @pytest.mark.parametrize('q,params,error', [
-    ('Rostock', {}, 'class'),
-    ('Rostock', {'class': 'unknown'}, 'invalid class'),
-    ('Rostock', {'class': 'address', 'type': 'unknown'}, 'invalid type'),
+    ('Rostock', {}, "Parameter 'class' is required"),
+    ('Rostock', {'class': 'unknown'}, "Invalid class 'unknown'"),
+    ('Rostock', {'class': 'address', 'type': 'unknown'}, 'Invalid request type.'),
 ])
 def test_invalid_requests(client, q, params, error):
     res = client.search(q, **params)
@@ -163,7 +163,7 @@ def test_reverse_invalid_epsg(client):
 def test_search_reverse_error(client):
     res = client.reverse('12.1441154.192757', in_epsg=4326, **{'class': 'address'})
     assert res.status == 400
-    assert 'invalid' in res.message
+    assert 'Invalid parameter value' in res.message
 
 
 def test_headers(client):
