@@ -1,5 +1,5 @@
 # -:- encoding: utf-8 -:-
-
+from __future__ import unicode_literals
 import re
 
 from geocodr import proj
@@ -36,15 +36,15 @@ def ReplaceStrasse(field):
     A boost must be applied to the field, not this wrapped result.
     """
     return PatternReplace(
-        ur'(?i)stra(ß|ss)e\b', u'str.',
-        PatternReplace(ur'\Bstr.', u' str.', field)
+        r'(?i)stra(ß|ss)e\b', 'str.',
+        PatternReplace(r'\Bstr.', ' str.', field)
     )
 
 class Strassen(Collection):
     class_ = 'address'
     class_title = 'Adresse'
     name = 'strassen'
-    title = u'Straße'
+    title = 'Straße'
     fields = ('strasse_name', 'gemeinde_name', 'gemeindeteil_name')
     qfields = (
         ReplaceStrasse(NGramField('strasse_name_ngram') ^ 1.6),
@@ -64,14 +64,14 @@ class Strassen(Collection):
         if prop['gemeindeteil_name']:
             parts.append(prop['gemeindeteil_name'])
         parts.append(prop['strasse_name'])
-        return u', '.join(parts)
+        return ', '.join(parts)
 
 
 class Adressen(Collection):
     class_ = 'address'
     class_title = 'Adresse'
     name = 'adressen'
-    title = u'Adresse'
+    title = 'Adresse'
     fields = ('strasse_name', 'gemeindeteil_name', 'gemeinde_name',
               'postleitzahl', 'hausnummer')
     # results with identical fields (except for different hausnummer)
@@ -101,7 +101,7 @@ class Adressen(Collection):
         if prop['gemeindeteil_name']:
             parts.append(prop['gemeindeteil_name'])
         parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
-        return u', '.join(parts)
+        return ', '.join(parts)
 
     def sort_tiebreaker(self, doc):
         """
@@ -140,7 +140,7 @@ class Gemeinden(Collection):
     class_ = 'address'
     class_title = 'Adresse'
     name = 'gemeinden'
-    title = u'Gemeinde'
+    title = 'Gemeinde'
     fields = ('gemeinde_name',)
     qfields = (
         NGramField('gemeinde_name_ngram') ^ 2.4,
@@ -156,14 +156,14 @@ class Gemeinden(Collection):
         parts.append(prop['gemeinde_name'])
         if prop['gemeinde_name_suchzusatz']:
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
-        return u', '.join(parts)
+        return ', '.join(parts)
 
 
 class GemeindeTeile(Collection):
     class_ = 'address'
     class_title = 'Adresse'
     name = 'gemeindeteile'
-    title = u'Gemeindeteil'
+    title = 'Gemeindeteil'
     fields = ('gemeinde_name', 'gemeindeteil_name')
     qfields = (
         NGramField('gemeindeteil_name_ngram') ^ 1.3,
@@ -182,14 +182,14 @@ class GemeindeTeile(Collection):
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
         if prop['gemeindeteil_name']:
             parts.append(prop['gemeindeteil_name'])
-        return u', '.join(parts)
+        return ', '.join(parts)
 
 
 class Gemarkungen(Collection):
     class_ = 'parcel'
-    class_title = u'Flurstück'
+    class_title = 'Flurstück'
     name = 'gemarkungen'
-    title = u'Gemarkung'
+    title = 'Gemarkung'
     fields = ('gemeinde_name', 'gemarkung_name')
     qfields = (
         NGramField('gemarkung_name_ngram') ^ 1.5,
@@ -208,19 +208,19 @@ class Gemarkungen(Collection):
         if prop['gemeinde_name_suchzusatz']:
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
         parts.append(prop['gemarkung_name'])
-        return u', '.join(parts)
+        return ', '.join(parts)
 
     def query(self, query):
-        if re.match(ur'^\d{4,4}$', query):
+        if re.match(r'^\d{4,4}$', query):
             query = gemarkung_prefix + query
 
         return Collection.query(self, query)
 
 class Fluren(Collection):
     class_ = 'parcel'
-    class_title = u'Flurstück'
+    class_title = 'Flurstück'
     name = 'fluren'
-    title = u'Flur'
+    title = 'Flur'
     fields = ('gemeinde_name', 'gemarkung_name', 'flur')
     qfields = (
         NGramField('gemarkung_name_ngram'),
@@ -238,8 +238,8 @@ class Fluren(Collection):
         if prop['gemeinde_name_suchzusatz']:
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
         parts.append(prop['gemarkung_name'])
-        parts.append(u'Flur ' + str(int(prop['flur'], 10)))
-        return u', '.join(parts)
+        parts.append('Flur ' + str(int(prop['flur'], 10)))
+        return ', '.join(parts)
 
     def query(self, query):
         """
@@ -260,19 +260,19 @@ class Fluren(Collection):
         if flst.gemarkung_name:
             qparts.append(Collection.query(self, flst.gemarkung_name))
         else:
-            qparts.append(u'gemarkung_schluessel:' + flst.gemarkung)
+            qparts.append('gemarkung_schluessel:' + flst.gemarkung)
 
         if flst.flur:
-            qparts.append(u'flur:' + flst.flur)
+            qparts.append('flur:' + flst.flur)
 
-        return u'{}'.format(u' AND '.join(qparts))
+        return '{}'.format(' AND '.join(qparts))
 
 
 class Flurstuecke(Collection):
     class_ = 'parcel'
-    class_title = u'Flurstück'
+    class_title = 'Flurstück'
     name = 'flurstuecke'
-    title = u'Flurstück'
+    title = 'Flurstück'
     fields = ('gemeinde_name', 'gemarkung_name', 'flurstueckskennzeichen')
     qfields = (
         NGramField('gemarkung_name_ngram'),
@@ -308,11 +308,11 @@ class Flurstuecke(Collection):
         if prop['gemeinde_name_suchzusatz']:
             parts.append(prop['gemeinde_name_suchzusatz'])
         parts.append(prop['gemarkung_name'])
-        parts.append(u'Flur ' + str(int(prop['flur'], 10)))
+        parts.append('Flur ' + str(int(prop['flur'], 10)))
         parts.append(str(int(prop['zaehler'], 10)))
         if prop['nenner'] != '0000':
             parts[-1] += '/' + str(int(prop['nenner'], 10))
-        return u', '.join(parts)
+        return ', '.join(parts)
 
     def query(self, query):
         """
@@ -326,27 +326,27 @@ class Flurstuecke(Collection):
             return
 
         if not flst.gemarkung_name:
-            return u'flurstuecksnummer:' + flst.gemarkung + flst.flur \
-                + flst.zaehler + flst.nenner + u'*'
+            return 'flurstuecksnummer:' + flst.gemarkung + flst.flur \
+                + flst.zaehler + flst.nenner + '*'
 
         qparts = []
         qparts = [Collection.query(self, flst.gemarkung_name)]
 
         if flst.flur:
-            qparts.append(u'flur:' + flst.flur)
+            qparts.append('flur:' + flst.flur)
         if flst.nenner:
-            qparts.append(u'nenner:' + flst.nenner)
+            qparts.append('nenner:' + flst.nenner)
         if flst.zaehler:
-            qparts.append(u'zaehler:' + flst.zaehler)
+            qparts.append('zaehler:' + flst.zaehler)
 
-        return u'{}'.format(u' AND '.join(qparts))
+        return '{}'.format(' AND '.join(qparts))
 
 
 class Schulen(Adressen):
     class_ = 'school'
     class_title = 'Schule'
     name = 'schulen'
-    title = u'Schule'
+    title = 'Schule'
     fields = ('bezeichnung', 'postleitzahl', 'strasse_name', 'art',
               'hausnummer', 'gemeinde_name', 'gemeindeteil_name')
     qfields = (
@@ -378,4 +378,4 @@ class Schulen(Adressen):
         parts.append(prop['bezeichnung'])
         parts.append(prop['art'])
         parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
-        return u', '.join(parts)
+        return ', '.join(parts)
