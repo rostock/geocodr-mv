@@ -1,0 +1,746 @@
+# -:- encoding: UTF-8 -:-
+
+from __future__ import print_function
+
+import json
+import threading
+import time
+
+import requests
+
+import pytest
+
+
+class Result(object):
+    def __init__(self, resp):
+        self.resp = resp
+        self.doc = resp.json()
+
+    @property
+    def features(self):
+        return self.doc['features']
+
+
+class Error(object):
+    def __init__(self, resp):
+        self.resp = resp
+        self.doc = resp.json()
+        self.status = self.doc['status']
+        self.message = self.doc['message']
+
+
+class Client(object):
+    def __init__(self, url):
+        self.url = url
+        self._s = requests.Session()
+
+    def handle_resp(self, resp):
+        if resp.ok:
+            return Result(resp)
+        return Error(resp)
+
+    def search(self, q, **params):
+        d = {}
+        d['type'] = 'search'
+        d['query'] = q
+        d.update(params)
+
+        resp = self._s.get(self.url, params=d)
+        return self.handle_resp(resp)
+
+    def reverse(self, q, **params):
+        d = {}
+        d['type'] = 'reverse'
+        d['query'] = q
+        d.update(params)
+
+        resp = self._s.get(self.url, params=d)
+        return self.handle_resp(resp)
+
+
+class JSONClient(object):
+    def __init__(self, url):
+        self.url = url
+        self._s = requests.Session()
+
+    def handle_resp(self, resp):
+        if resp.ok:
+            return Result(resp)
+        return Error(resp)
+
+    def search(self, q, **params):
+        d = {}
+        d['type'] = 'search'
+        d['query'] = q
+        d.update(params)
+
+        resp = self._s.post(self.url, json=d)
+        return self.handle_resp(resp)
+
+    def reverse(self, q, **params):
+        d = {}
+        d['type'] = 'reverse'
+        d['query'] = q
+        d.update(params)
+
+        resp = self._s.post(self.url, json=d)
+        return self.handle_resp(resp)
+
+
+@pytest.fixture(
+    params=[
+        'get',
+        'json',
+    ],
+    scope='session',
+)
+def client(geocodr_url, solr_url, request):
+    if solr_url != "":
+        from geocodr.api import create_app
+        app = create_app({
+            'solr_url': solr_url,
+            'mapping': '../../api/geocodr_mapping.py', # TODO
+        })
+        server = ServerThread(app)
+        server.start()
+
+        # Wait randomish time to allows SocketServer to initialize itself.
+        # TODO: Replace this with proper event telling the server is up.
+        time.sleep(0.1)
+
+        # assert server.srv is not None, "Could not start the test web server"
+
+        host_base = HOST_BASE
+
+        def teardown():
+            server.quit()
+
+        request.addfinalizer(teardown)
+
+        geocodr_url = host_base
+
+    if request.param == 'get':
+        return Client(geocodr_url + '/query')
+    elif request.param == 'json':
+        return JSONClient(geocodr_url + '/query')
+
+
+@pytest.mark.parametrize('q,params,error', [
+    ('Rostock', {}, 'class'),
+    ('Rostock', {'class': 'unknown'}, 'invalid class'),
+    ('Rostock', {'class': 'address', 'type': 'unknown'}, 'invalid type'),
+])
+def test_invalid_requests(client, q, params, error):
+    res = client.search(q, **params)
+    assert res.status == 400
+    assert error in res.message
+
+
+def test_not_found(client):
+    res = client.search('dflskjdhf lskjdhf lskjdhf lskjdfh lskjdh',
+                        **{'class': 'address'})
+    assert len(res.features) == 0
+
+
+def test_search_limit(client):
+    res = client.search('Rostock', **{'class': 'address'})
+    assert len(res.features) == 100
+
+    res = client.search('Rostock', limit=10, **{'class': 'address'})
+    assert len(res.features) == 10
+
+    # return at least one result
+    res = client.search('Rostock', limit=-10, **{'class': 'address'})
+    assert len(res.features) == 1
+
+
+def test_reverse_invalid_epsg(client):
+    res = client.reverse('Rostock', in_epsg=99999, **{'class': 'adress'})
+    assert res.status == 400
+    assert 'unknown EPSG:99999' in res.message
+
+
+def test_search_reverse_error(client):
+    res = client.reverse('12.1441154.192757', in_epsg=4326, **{'class': 'address'})
+    assert res.status == 400
+    assert 'invalid' in res.message
+
+
+def test_headers(client):
+    res = client.search('rostock steinstr 1',
+                        **{'class': 'address'})
+    assert res.resp.headers['content-type'] == 'application/json; charset=utf-8'
+    assert res.resp.headers['access-control-allow-origin'] == '*'
+    assert len(res.features) > 0
+
+def test_jsonp(client):
+    if isinstance(client, JSONClient):
+        resp = requests.post(client.url, params={
+            'callback': 'test_callback',
+        }, json={
+            'query':'rostock steinstr 1',
+            'class': 'address',
+            'type': 'search',
+        })
+    else:
+        resp = requests.get(client.url, params={
+            'query':'rostock steinstr 1',
+            'callback': 'test_callback',
+            'class': 'address',
+            'type': 'search',
+        })
+    assert resp.headers['content-type'] == 'application/javascript'
+    assert resp.headers['access-control-allow-origin'] == '*'
+    assert resp.content.startswith(b'test_callback({\n')
+    assert resp.content.endswith(b'\n});')
+    data = resp.content[len('test_callback('):-2]
+    if isinstance(resp.content, bytes):
+        data = data.decode('utf-8')
+    fc = json.loads(data)
+    assert fc['type'] == 'FeatureCollection'
+
+
+@pytest.mark.parametrize("query", [
+    '  rostock ',
+    ' RøsTOCK',  # find fuzzy results
+    ' "Rostock"',
+    " 'Rostock'",
+    r'-{}[]\Rostock" +Hauptstr',
+])
+def test_invalid_chars(client, query):
+    """
+    Check that special chars are replaced with whitespace.
+    """
+    res = client.search(query,
+                        **{'class': 'address'})
+    assert len(res.features) > 0
+
+
+@pytest.mark.parametrize("radius,min_features,max_features", [
+    (None, 10, 20), # default 50
+    (5, 1, 3),
+    (10, 3, 5),
+    (50, 10, 20),
+    (500, 80, 80), # limit
+])
+def test_reverse_radius(client, radius, min_features, max_features):
+    kw = {'class': 'address'}
+    if radius:
+        kw['radius'] = radius
+    res = client.reverse(
+        '12.144111609107474,54.19275740009377',
+        limit=80,
+        in_epsg=4326, **kw)
+    assert min_features <= len(res.features) <= max_features
+    # first result should be direct hit
+    assert res.features[0]['properties']['entfernung'] < 0.1
+    last_dist = 0
+    if not radius:
+        radius = 50 # default
+    # other results should be ordered by distance
+    for f in res.features:
+        dist = f['properties']['entfernung']
+        assert dist < radius
+        assert dist >= last_dist
+        last_dist = dist
+
+
+@pytest.mark.parametrize("radius,min_features,max_features", [
+    (5, 1, 3),
+    (10, 3, 5),
+    (50, 10, 20),
+    (500, 80, 80), # limit
+])
+def test_reverse_peri_radius(client, radius, min_features, max_features):
+    res = client.reverse(
+        'ignored for reverse with peri_coord',
+        peri_coord='12.144111609107474,54.19275740009377', peri_epsg=4326,
+        peri_radius=radius,
+        radius=1000, # ignored
+        limit=80,
+        in_epsg=4326, **{'class': 'address'})
+    assert min_features <= len(res.features) <= max_features
+    # first result should be direct hit
+    assert res.features[0]['properties']['entfernung'] < 0.1
+    last_dist = 0
+    # other results should be ordered by distance
+    for f in res.features:
+        dist = f['properties']['entfernung']
+        assert dist < radius
+        assert dist >= last_dist
+        last_dist = dist
+
+
+def test_search_neubukow(client):
+    """
+    F.1.1 Suchklasse Adresse, Suche nach neubukow
+    """
+    res = client.search('neubukow', limit=500, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Neubukow'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Malpendorf'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str.', 'gemeinde_name': 'Bastorf'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Chaussee', 'gemeinde_name': 'Carinerland'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str. (Krempin)', 'gemeinde_name': 'Carinerland'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str. (Moitin)', 'gemeinde_name': 'Carinerland'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Am Brink', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Am Markt', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Neubukower Str.', 'hausnummer': '1', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Neubukower Str.', 'hausnummer': '2', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Brink', 'hausnummer': '1', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Brink', 'hausnummer': '1a', 'gemeinde_name': 'Neubukow, Stadt'}),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_search_parkent_wiesen(client):
+    """
+    F.1.2 Suchklasse Adresse, Suche nach parkeNt Wiesen
+    """
+    res = client.search('parkeNt Wiesen', limit=100, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Wiesengrund', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Wiesenstr.', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'An der Streuobstwiese', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Bartenshagen'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '1', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '2', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '3', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1a', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '2', 'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
+    ]
+
+    assert_results(res, expected)
+
+
+@pytest.mark.parametrize("query", [
+    u'seeStr.,Rosto',
+    u'SEESTRaße Rostock',
+    u'Rostock seestrasse',
+])
+def test_search_seestr(client, query):
+    """
+    F.1.3 Suchklasse Adresse, Suche nach seeStr.,Rosto
+    """
+    res = client.search(query, limit=100, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Seestr.', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': u'Seebad Warnemünde'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '1', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': u'Seebad Warnemünde'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '2', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': u'Seebad Warnemünde'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '3', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': u'Seebad Warnemünde'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '4', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': u'Seebad Warnemünde'}),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_search_sportplatz(client):
+    """
+    F.1.4 Suchklasse Adresse, Suche nach sporrtplats kröhpelin 6
+    """
+    res = client.search(u'sporrtplats kröhpelin 6', **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Sportplatz', 'hausnummer': '6', 'gemeinde_name': u'Kröpelin, Stadt', 'gemeindeteil_name': u'Schmadebeck'}),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_search_neubukow_limit(client):
+    """
+    F.1.5 SuchklasseAdresse,Suchenachneubukow,BeschränkungTrefferlistenlänge
+    """
+    res = client.search('neubukow', limit=8, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Neubukow'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Malpendorf'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Panzow'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Spriehusen'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Steinbrink'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str.', 'gemeinde_name': 'Bastorf'}),
+    ]
+
+    assert_results(res, expected)
+
+def test_search_neubukow_bbox(client):
+    """
+    F.1.6 Suchklasse Adresse, Suche nach neubukow, „Bounding-box“-Filterung
+    """
+    res = client.search('neubukow', bbox='11.67596,54.03998,11.67763,54.04059', bbox_epsg=4326, limit=500, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Malpendorf'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Dorfstr.', 'gemeinde_name': 'Malpendorf', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13', 'gemeinde_name': 'Malpendorf', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13a', 'gemeinde_name': 'Malpendorf', 'gemeinde_name': 'Neubukow, Stadt'}),
+    ]
+
+    assert_results(res, expected)
+
+
+
+def test_search_neubukow_peri(client):
+    """
+    F.1.7 Suchklasse Adresse, Suche nach neubukow, Umkreis-Filterung
+    """
+    res = client.search('neubukow',  peri_coord='280081.485,5992752.284', peri_radius='115.3', peri_epsg=25833, limit=500, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': u'Grüner Weg', 'gemeinde_name': 'Neubukow, Stadt'}),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Hauptstr.', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '1', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '2', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '3', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '4', 'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+    ]
+
+    assert_results(res, expected)
+
+
+@pytest.mark.parametrize("query", [
+    'parkentin, flur 1',
+    'parkentin 1',
+    '1320901',
+    '132090-1',
+    '2090-1',
+])
+def test_search_parcel_flur(client, query):
+    """
+    F.1.8 Suchklasse Flurstück, Suche nach parkentin, flur 1
+    """
+    res = client.search(query, **{'class': 'parcel'})
+
+    expected = [
+        R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0001'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00007/0001'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00008/0001'}),
+    ]
+
+    assert_results(res, expected)
+
+
+@pytest.mark.parametrize("query", [
+    'flurbezirk ii',
+    '132241',
+    '2241',
+])
+def test_search_parcel_flurbezirk(client, query):
+    """
+    F.1.10 Suchklasse Flurstück, Suche nach flurbezirk ii
+    """
+    res = client.search(query, **{'class': 'parcel'})
+
+    expected = [
+        R({'objektgruppe': 'Gemarkung', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '002', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '003', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '004', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '005', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '006', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '007', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '008', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '009', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Flur', 'flur': '010', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0008', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0009', 'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+    ]
+
+    assert_results(res, expected)
+
+
+@pytest.mark.parametrize("query,expected,n", [
+    ('132232 1,7', None, 0), # F.1.9
+    ('132232 1,157', '132232-001-00157/0002', 2), # F.1.9
+    ('132232 1,157/4', '132232-001-00157/0004', 1),
+    ('132232 1,157 4', '132232-001-00157/0004', 1),
+    ('132232 flur1 157', '132232-001-00157/0002', 2),
+    ('2232 1,7', None, 0), # F.1.9
+    ('2232 1,157', '132232-001-00157/0002', 2), # F.1.9
+    ('2232 1,157/4', '132232-001-00157/0004', 1),
+    ('2232 1,157 4', '132232-001-00157/0004', 1),
+    ('2232 flur1 157', '132232-001-00157/0002', 2),
+    ('Krummendorf flur1 157', '132232-001-00157/0002', 2),
+    ('kurmendorf flur1 157', '132232-001-00157/0002', 2),
+    ('Krummendorf 1 157', '132232-001-00157/0002', 2),
+    ('Krummendorf 1 157/2', '132232-001-00157/0002', 1),
+    ('132232-001-00157', '132232-001-00157/0002', 2), # F.1.11
+    ('132232-001-00157-02', '132232-001-00157/0002', 1),
+    ('132232001001570004', '132232-001-00157/0004', 1), # F.1.12
+    ('2232-001-00157', '132232-001-00157/0002', 2), # F.1.11
+    ('2232-001-00157-02', '132232-001-00157/0002', 1),
+    ('2232001001570004', '132232-001-00157/0004', 1), # F.1.12
+])
+def test_search_parcel(client, query, expected, n):
+    """
+    F.1.9 Suchklasse Flurstück, Suche nach 13223 21, 7
+    F.1.11 Suchklasse Flurstück, Suche nach 132232-001-00157
+    F.1.12 Suchklasse Flurstück, Suche nach 132232001001570004
+    """
+    res = client.search(query, **{'class': 'parcel'})
+    assert len(res.features) == n
+    if n > 0:
+        assert res.features[0]['properties']['flurstueckskennzeichen'] == expected
+
+
+def test_search_school(client):
+    """
+    F.1.13 Suchklasse Schule, Suche nach jenapla
+    """
+    res = client.search('jenapla', **{'class': 'school'})
+
+    expected = [
+        R({'objektgruppe': u'Schule', 'bezeichnung': u'Jenaplanschule Rostock', 'art': 'Primarbereich', 'strasse_name': 'Lindenstr.', 'hausnummer': '3a', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': u'Schule', 'bezeichnung': u'Jenaplanschule Rostock - Integrierte Gesamtschule', 'art': 'Sekundarbereich I', 'strasse_name': u'Blücherstr.', 'hausnummer': '42', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': u'Schule', 'bezeichnung': u'Jenaplanschule Rostock - Integrierte Gesamtschule', 'art': 'Sekundarbereich I', 'strasse_name': 'Lindenstr.', 'hausnummer': '3a', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_search_school_address(client):
+    """
+    F.1.14 Suchklasse Adresse und Suchklasse Schule, Suche nach rostock,barnstorfer weg 21a
+    """
+    res = client.search('rostock,barnstorfer weg 21a', **{'class': 'school,address'})
+
+    expected = [
+        R({'objektgruppe': u'Adresse', 'gemeindeteil_name': u'Kröpeliner-Tor-Vorstadt', 'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21a', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        # R({'objektgruppe': 'Schule', 'bezeichnung': 'Janaplanschule Rostock - Integrierte Gesamtschule', 'art': 'Sekundarbereich I', 'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21a', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+        R({'objektgruppe': 'Schule', 'bezeichnung': 'Grundschule am Margaretenplatz', 'art': 'Primarbereich', 'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21a', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_reverse_address(client):
+    """
+    F.2.1 Suchklasse Adresse, Suche nach 307663,6004522.21
+    """
+    res = client.search(u'307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+        R({'objektgruppe': u'Gemeindeteil', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': 'Lichtenhagen'}, distance=0),
+        R({'objektgruppe': u'Straße', 'strasse_name': 'Stettiner Str.', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=1),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '26', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': 'Lichtenhagen'}, distance=15),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': 'Lichtenhagen'}, distance=20),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_reverse_parcel(client):
+    u"""
+    F.2.2 Suchklasse Flurstück, Suche nach 307663,6004522.21
+    """
+    res = client.search(u'307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'parcel'})
+
+    expected = [
+        R({'objektgruppe': u'Gemarkung', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+        R({'objektgruppe': u'Flur', 'flur': '003', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0101', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0096', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=4),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0110', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=4),
+        R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0116', 'gemarkung_name': u'Lütten Klein', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=6),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_reverse_bbox(client):
+    u"""
+    F.2.3 Suchklasse Adresse, „Bounding-box“-Filterung
+    """
+    res = client.search(u'12345,67890', in_epsg=9999, bbox='11.67596,54.03998,11.67763,54.04059', bbox_epsg=4326, type='reverse', **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
+        R({'objektgruppe': u'Gemeindeteil', 'gemeindeteil_name': 'Malpendorf', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13', 'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': 'Malpendorf'}, distance=20),
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13a', 'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': 'Malpendorf'}, distance=35),
+    ]
+
+    assert_results(res, expected)
+
+
+def test_reverse_peri(client):
+    """
+    F.2.4 Suchklasse Adresse, Umkreis-Filterung
+    """
+    res = client.search(u'12345,67890', in_epsg=9999, peri_coord='280081.485,5992752.284', peri_radius='115.3', peri_epsg=25833, type='reverse', **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
+        R({'objektgruppe': u'Gemeindeteil', 'gemeindeteil_name': u'Buschmühlen', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
+        R({'objektgruppe': u'Straße', 'strasse_name': u'Grüner Weg', 'gemeinde_name': u'Neubukow, Stadt'}, distance=3),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '2', 'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}, distance=22),
+        R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '3', 'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}, distance=30),
+    ]
+
+    assert_results(res, expected)
+
+
+@pytest.mark.parametrize("out_epsg,expected_coord", [
+    [None, [307680.447, 6004530.821]],
+    [25833, [307680.447, 6004530.821]],
+    [4326, [12.054841, 54.152802]],
+    [3857, [1341938.79, 7199148.47]],
+])
+def test_out_epsg(client, out_epsg, expected_coord):
+    """
+    E.5.1 Koordinaten
+    """
+    kw = {'class': 'address'}
+    if out_epsg:
+        kw['out_epsg'] = out_epsg
+    res = client.search(u'stettiner str 35 rostock', type='search', **kw)
+
+    expected = [
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt', 'gemeindeteil_name': 'Lichtenhagen'}),
+    ]
+    assert_results(res, expected)
+    assert res.features[0]['geometry']['coordinates'] == pytest.approx(expected_coord)
+
+
+@pytest.mark.parametrize("term", [
+    "kopernikusstr 46",
+    "kopernikusstr. 46",
+    "kopernikusstraße 46",
+    "kopernikus straße 46",
+    "kopernikus Straße 46",
+    "KOPERNIKUS STRASSE 46",
+])
+def test_strasse_suffix(client, term):
+    """
+    Suchen mit 'straße' findet Ergebnisse mit str.
+    """
+    res = client.search(term, **{'class': 'address'})
+
+    expected = [
+        R({'objektgruppe': u'Adresse', 'strasse_name': 'Kopernikusstr.', 'hausnummer': '46', 'gemeinde_name': u'Torgelow, Stadt', 'gemeindeteil_name': 'Torgelow'}),
+    ]
+
+    assert_results(res, expected)
+
+class R(object):
+    """
+    R is an expected result for checks with assert_results.
+    """
+    def __init__(self, prop, distance=-1):
+        self.prop = prop
+        self.distance = distance
+
+
+def assert_results(res, expected):
+    # __tracebackhide__ = True
+
+    # print(res.doc)
+    print(res.resp.url)
+    assert not isinstance(res, Error), 'expected result got: {} ({})'.format(res.message, res.status)
+
+    assert res.features
+
+    fi = 0
+
+    keys = set(('_score_', ))
+    for e in expected:
+        keys.update(e.prop.keys())
+
+    for e in expected:
+        print('searching for result:\n\t', e.prop)
+
+        while True:
+            assert fi < len(res.features), 'reached end of results while searching for {}'.format(e)
+            prop = res.features[fi]['properties']
+            print('compare?', dict((k, prop.get(k)) for k in keys))
+
+            found = True
+
+            for k, v in e.prop.items():
+                if prop.get(k) != v:
+                    # property not found/matched
+                    found = False
+                    break
+            fi += 1
+            if found:
+                if e.distance != -1:
+                    assert prop['_distance_'] <= e.distance, 'distance for {}'.format(prop)
+                break
+
+HOST_BASE = "http://localhost:8521"
+
+class ServerThread(threading.Thread):
+    """
+    Run WSGI server on a background thread.
+
+    This thread starts a web server for a given WSGI application.
+    """
+
+    def __init__(self, app, hostbase=HOST_BASE):
+        threading.Thread.__init__(self)
+        self.app = app
+        self.srv = None
+        self.daemon = True
+        self.hostbase = hostbase
+
+    def run(self):
+        """Start WSGI server on a background to listen to incoming."""
+
+        from waitress import serve
+        try:
+            from urlparse import urlparse
+        except ImportError:
+            from urllib.parse import urlparse
+
+        parts = urlparse(self.hostbase)
+        domain, port = parts.netloc.split(":")
+
+        try:
+            serve(self.app, host='127.0.0.1', port=int(port), log_socket_errors=False, _quiet=True)
+        except Exception:
+            # We are a background thread so we have problems to interrupt tests in the case of error. Try spit out something to the console.
+            import traceback
+            traceback.print_exc()
+
+
+@pytest.fixture(scope='session')
+def web_server(request, app):
+    """py.test fixture to create a WSGI web server for functional tests.
+
+    :param app: py.test fixture for constructing a WSGI application
+
+    :return: localhost URL where the web server is running.
+    """
+
+    server = ServerThread(app)
+    server.start()
+
+    # Wait randomish time to allows SocketServer to initialize itself.
+    # TODO: Replace this with proper event telling the server is up.
+    time.sleep(0.1)
+
+    # assert server.srv is not None, "Could not start the test web server"
+
+    host_base = HOST_BASE
+
+    def teardown():
+        server.quit()
+
+    request.addfinalizer(teardown)
+    return host_base
