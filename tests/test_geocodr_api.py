@@ -30,8 +30,9 @@ class Error(object):
 
 
 class Client(object):
-    def __init__(self, url):
+    def __init__(self, url, key=None):
         self.url = url
+        self.key = key
         self._s = requests.Session()
 
     def handle_resp(self, resp):
@@ -39,19 +40,21 @@ class Client(object):
             return Result(resp)
         return Error(resp)
 
-    def search(self, q, **params):
-        d = {}
-        d['type'] = 'search'
-        d['query'] = q
-        d.update(params)
+    def search(self, q, **kw):
+        if 'type' not in kw:
+            kw['type'] = 'search'
+        return self.call(q, **kw)
 
-        resp = self._s.get(self.url, params=d)
-        return self.handle_resp(resp)
+    def reverse(self, q, **kw):
+        if 'type' not in kw:
+            kw['type'] = 'reverse'
+        return self.call(q, **kw)
 
-    def reverse(self, q, **params):
+    def call(self, q, **params):
         d = {}
-        d['type'] = 'reverse'
         d['query'] = q
+        if self.key:
+            d['key'] = self.key
         d.update(params)
 
         resp = self._s.get(self.url, params=d)
@@ -59,8 +62,9 @@ class Client(object):
 
 
 class JSONClient(object):
-    def __init__(self, url):
+    def __init__(self, url, key=None):
         self.url = url
+        self.key = key
         self._s = requests.Session()
 
     def handle_resp(self, resp):
@@ -68,22 +72,27 @@ class JSONClient(object):
             return Result(resp)
         return Error(resp)
 
-    def search(self, q, **params):
+    def search(self, q, **kw):
+        if 'type' not in kw:
+            kw['type'] = 'search'
+        return self.call(q, **kw)
+
+    def reverse(self, q, **kw):
+        if 'type' not in kw:
+            kw['type'] = 'reverse'
+        return self.call(q, **kw)
+
+    def call(self, q, **kw):
         d = {}
-        d['type'] = 'search'
+        params = {}
         d['query'] = q
-        d.update(params)
+        d.update(kw)
+        if self.key:
+            params['key'] = self.key
+        if 'key' in kw:
+            params['key'] = kw.pop('key')
 
-        resp = self._s.post(self.url, json=d)
-        return self.handle_resp(resp)
-
-    def reverse(self, q, **params):
-        d = {}
-        d['type'] = 'reverse'
-        d['query'] = q
-        d.update(params)
-
-        resp = self._s.post(self.url, json=d)
+        resp = self._s.post(self.url, json=d, params=params)
         return self.handle_resp(resp)
 
 
@@ -94,7 +103,7 @@ class JSONClient(object):
     ],
     scope='session',
 )
-def client(geocodr_url, solr_url, request):
+def client(geocodr_url, solr_url, geocodr_test_key, request):
     if solr_url != "":
         from geocodr.api import create_app
         app = create_app({
@@ -120,9 +129,9 @@ def client(geocodr_url, solr_url, request):
         geocodr_url = host_base
 
     if request.param == 'get':
-        return Client(geocodr_url + '/query')
+        return Client(geocodr_url + '/query', key=geocodr_test_key)
     elif request.param == 'json':
-        return JSONClient(geocodr_url + '/query')
+        return JSONClient(geocodr_url + '/query', key=geocodr_test_key)
 
 
 @pytest.mark.parametrize('q,params,error', [
@@ -177,6 +186,7 @@ def test_jsonp(client):
     if isinstance(client, JSONClient):
         resp = requests.post(client.url, params={
             'callback': 'test_callback',
+            'key': client.key,
         }, json={
             'query':'rostock steinstr 1',
             'class': 'address',
@@ -188,6 +198,7 @@ def test_jsonp(client):
             'callback': 'test_callback',
             'class': 'address',
             'type': 'search',
+            'key': client.key,
         })
     assert resp.headers['content-type'] == 'application/javascript'
     assert resp.headers['access-control-allow-origin'] == '*'
@@ -297,7 +308,6 @@ def test_search_neubukow(client):
     assert_results(res, expected)
 
 
-def test_search_parkent_wiesen(client):
     """
     F.1.2 Suchklasse Adresse, Suche nach parkeNt Wiesen
     """
