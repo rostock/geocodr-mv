@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#! /usr/bin/env bash
 
 # This script exports various PostgreSQL tables into CSV files for import into
 # Solr with geocodr-post.
@@ -19,6 +19,7 @@
 
 CSV_OUTDIR="${CSV_OUTDIR:-/tmp/geocodr-csv}"
 export PGDATABASE="${PGDATABASE:-geocodr}"
+DBSCHEMA="${DBSCHEMA:-public}"
 
 mkdir -p $CSV_OUTDIR
 
@@ -35,7 +36,7 @@ COPY (SELECT
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
   gemeinde_name,
   to_jsonb(gemeinden) - 'geometrie' AS json
-FROM gemeinden
+FROM ${DBSCHEMA}.gemeinden
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -48,7 +49,7 @@ COPY (SELECT
   gemeinde_name,
   gemeindeteil_name,
   to_jsonb(gemeindeteile) - 'geometrie' AS json
-FROM gemeindeteile
+FROM ${DBSCHEMA}.gemeindeteile
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -56,13 +57,13 @@ END
 
 pg2csv $CSV_OUTDIR/strassen.csv "$(cat << END
 COPY (SELECT
-  uuid AS id,
+  row_number() OVER () AS id,
   ST_AsText(ST_Simplify(geometrie, 1)) AS geometrie,
   gemeinde_name,
   gemeindeteil_name,
   strasse_name,
-  to_jsonb(strassen_mit_gemeindeteil) - 'geometrie' AS json
-FROM strassen_mit_gemeindeteil
+  to_jsonb(strassen_alle_mit_gemeindeteil) - 'geometrie' AS json
+FROM ${DBSCHEMA}.strassen_alle_mit_gemeindeteil
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -77,8 +78,8 @@ COPY (SELECT
   gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(adressen) - 'geometrie' AS json
-FROM adressen
+  to_jsonb(adressen_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.adressen_alle
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -90,8 +91,8 @@ COPY (SELECT
   gemarkung_name,
   gemarkung_schluessel,
   gemeinde_name,
-  to_jsonb(gemarkungen) - 'geometrie' AS json
-FROM gemarkungen
+  to_jsonb(gemarkungen_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.gemarkungen_alle
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -104,8 +105,8 @@ COPY (SELECT
   gemarkung_schluessel,
   gemeinde_name,
   flur,
-  to_jsonb(fluren) - 'geometrie' AS json
-FROM fluren
+  to_jsonb(fluren_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.fluren_alle
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -121,8 +122,8 @@ COPY (SELECT
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke) - 'geometrie' AS json
-FROM flurstuecke
+  to_jsonb(flurstuecke_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.flurstuecke_alle
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -140,7 +141,7 @@ COPY (SELECT
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
   to_jsonb(schulen) - 'geometrie' AS json
-FROM schulen
+FROM ${DBSCHEMA}.schulen
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
