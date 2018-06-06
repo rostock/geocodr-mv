@@ -27,6 +27,7 @@ The following steps are required to add a new collection. We use the collection 
 - Upload schema: `geocodr-zk --zk-hosts localhost:9983 --config-dir solr/ --push sport`
 - Create CSV dump: `CSV_OUTDIR=/tmp/csv-files PGDATABASE=geocodr PGUSER=geocodr scripts/geocodr-pg2csv.sh`
 - Index data: `geocodr-post --url http://localhost:8983/solr --csv /tmp/csv-files/sport.csv --collection sport`
+- Add `sport` to `geocodr-reindex.sh` for automatic updates.
 - Create a `Sport` class for your collection in `conf/geocodr-mapping.py`.
 - Reload Geocodr
 
