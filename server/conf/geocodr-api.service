@@ -7,7 +7,7 @@ Conflicts=shutdown.target
 [Service]
 User=geocodr
 Group=daemon
-ExecStart=/usr/local/geocodr/bin/geocodr-api --mapping /usr/local/geocodr-mv/conf/geocodr_mapping.py --api-keys /usr/local/geocodr-mv/conf/apikeys.csv
+ExecStart=/usr/local/geocodr/bin/geocodr-api --mapping /usr/local/geocodr-mv/conf/geocodr_mapping.py --api-keys /usr/local/geocodr-mv/conf/apikeys.csv --host 0.0.0.0
 
 [Install]
 WantedBy=multi-user.target graphical.target
