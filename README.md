@@ -9,8 +9,11 @@ Geocodr-MV
 Directories and files
 ---------------------
 
-- `scripts/geocodr-pg2csv.sh`: Script to dump PostgreSQL tables as CSV for import with `geocodr-post.`
+- `scripts/geocodr-pg2csv.sh`: Script to dump PostgreSQL tables as CSV for import with `geocodr-post`.
+- `scripts/geocodr-reindex.sh`: Script to call `geocodr-pg2csv.sh` and to import the data with `geocodr-post`.
 - `conf/geocodr_mapping.py`: Geocodr mapping with multiple customized classes and collections.
+- `server/INSTALL.rst`: Installation documentation for a three server setup based on SLES 12 SP3.
+- `server/`: Configurations and installation files.
 - `solr/`: Solr configuration and schemas for all collections for `geocodr-zk.`
 - `tests/`: Acceptance tests for this Geocodr configuration.
 

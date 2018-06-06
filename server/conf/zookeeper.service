@@ -1,0 +1,19 @@
+[Unit]
+Description=Zookeeper
+After=syslog.target network.target remote-fs.target nss-lookup.target systemd-journald-dev-log.socket
+Before=multi-user.target graphical.target nginx.service
+Conflicts=shutdown.target
+
+[Service]
+Type=forking
+User=solr
+Group=daemon
+Restart=always
+RestartSec=3s
+EnvironmentFile=/etc/default/zookeeper
+ExecStart=/usr/local/zookeeper/bin/zkServer.sh start
+ExecStop=/usr/local/zookeeper/bin/zkServer.sh stop
+ExecReload=/usr/local/zookeeper/bin/zkServer.sh restart
+
+[Install]
+WantedBy=multi-user.target graphical.target

@@ -1,0 +1,19 @@
+[Unit]
+Description=Apache Solr
+After=syslog.target network.target remote-fs.target nss-lookup.target systemd-journald-dev-log.socket
+Before=multi-user.target graphical.target nginx.service
+Conflicts=shutdown.target
+
+[Service]
+User=solr
+Group=daemon
+RuntimeDirectory=solr
+RuntimeDirectoryMode=0755
+LimitNOFILE=65536
+PIDFile=/var/run/solr/solr-8983.pid
+Environment=SOLR_INCLUDE=/etc/default/solr
+ExecStart=/usr/local/solr/bin/solr start
+ExecStop=/usr/local/solr/bin/solr stop
+
+[Install]
+WantedBy=multi-user.target graphical.target
