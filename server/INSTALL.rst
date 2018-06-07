@@ -67,7 +67,9 @@ Configure systemd and start Solr and Zookeeper::
     sudo chmod 644 /etc/systemd/system/{solr,zookeeper}.service
     sudo chown root:root /etc/systemd/system/{solr,zookeeper}.service
     sudo systemctl daemon-reload
+    sudo systemctl enable zookeeper
     sudo systemctl start zookeeper
+    sudo systemctl enable solr
     sudo systemctl start solr
 
 
@@ -98,7 +100,8 @@ Configure systemd and start geocodr-api::
     sudo chmod 644 /etc/systemd/system/geocodr-api.service
     sudo chown root:root /etc/systemd/system/geocodr-api.service
     sudo systemctl daemon-reload
-    sudo systemctl restart geocodr-api
+    sudo systemctl enable geocodr-api
+    sudo systemctl start geocodr-api
 
 
 Automatic reindex
