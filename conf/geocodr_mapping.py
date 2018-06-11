@@ -73,7 +73,7 @@ class Adressen(Collection):
     name = 'adressen'
     title = 'Adresse'
     fields = ('strasse_name', 'gemeindeteil_name', 'gemeinde_name',
-              'postleitzahl', 'hausnummer')
+              'postleitzahl')
     # results with identical fields (except for different hausnummer)
     # will get the same score
     align_score_fields = ('strasse_name', 'gemeindeteil_name', 'gemeinde_name',
@@ -100,7 +100,8 @@ class Adressen(Collection):
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
         if prop['gemeindeteil_name']:
             parts.append(prop['gemeindeteil_name'])
-        parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
+        parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'] +
+                     (prop['hausnummer_zusatz'] or ''))
         return ', '.join(parts)
 
     def sort_tiebreaker(self, doc):
