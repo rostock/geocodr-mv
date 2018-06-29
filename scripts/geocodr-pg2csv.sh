@@ -160,8 +160,8 @@ COPY (SELECT
   gemeinde_name,
   gemeindeteil_name,
   strasse_name,
-  to_jsonb(strassen_mit_gemeindeteil) - 'geometrie' AS json
-FROM ${DBSCHEMA}.strassen_mit_gemeindeteil
+  to_jsonb(strassen_alle_mit_gemeindeteil) - 'geometrie' AS json
+FROM ${DBSCHEMA}.strassen_alle_mit_gemeindeteil WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -176,8 +176,8 @@ COPY (SELECT
   gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(adressen) - 'geometrie' AS json
-FROM ${DBSCHEMA}.adressen
+  to_jsonb(adressen_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.adressen_alle WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -205,8 +205,8 @@ COPY (SELECT
   gemarkung_name,
   gemarkung_schluessel,
   gemeinde_name,
-  to_jsonb(gemarkungen) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemarkungen
+  to_jsonb(gemarkungen_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.gemarkungen_alle WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -219,8 +219,8 @@ COPY (SELECT
   gemarkung_schluessel,
   gemeinde_name,
   flur,
-  to_jsonb(fluren) - 'geometrie' AS json
-FROM ${DBSCHEMA}.fluren
+  to_jsonb(fluren_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.fluren_alle WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -236,8 +236,8 @@ COPY (SELECT
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke
+  to_jsonb(flurstuecke_alle) - 'geometrie' AS json
+FROM ${DBSCHEMA}.flurstuecke_alle WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -246,7 +246,7 @@ pg2csv $CSV_OUTDIR/flurstuecke_historisch_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) AS geometrie,
-  gemarkung_name,
+  gemarkung_schluessel,
   gemeinde_name,
   flur,
   zaehler,
@@ -254,7 +254,7 @@ COPY (SELECT
   flurstuecksnummer,
   flurstueckskennzeichen,
   to_jsonb(flurstuecke_historisch) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_historisch
+FROM ${DBSCHEMA}.flurstuecke_historisch WHERE geometrieinformation IS NOT NULL
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
