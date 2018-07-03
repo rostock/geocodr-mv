@@ -246,15 +246,15 @@ pg2csv $CSV_OUTDIR/flurstuecke_historisch_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) AS geometrie,
-  gemarkung_schluessel,
+  gemarkung_name,
   gemeinde_name,
   flur,
   zaehler,
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke_historisch) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_historisch WHERE geometrieinformation IS NOT NULL
+  to_jsonb(flurstuecke_historisch_mit_gemarkung_name) - 'geometrie' AS json
+FROM ${DBSCHEMA}.flurstuecke_historisch_mit_gemarkung_name WHERE geometrieinformation IS NOT NULL
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
