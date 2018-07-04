@@ -41,7 +41,6 @@ FROM ${DBSCHEMA}.gemeinden
 END
 )"
 
-
 pg2csv $CSV_OUTDIR/gemeindeteile.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
@@ -53,7 +52,6 @@ FROM ${DBSCHEMA}.gemeindeteile
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
-
 
 pg2csv $CSV_OUTDIR/strassen.csv "$(cat << END
 COPY (SELECT
@@ -128,18 +126,6 @@ FROM ${DBSCHEMA}.flurstuecke_alle
 END
 )"
 
-pg2csv $CSV_OUTDIR/gemeinden_hro.csv "$(cat << END
-COPY (SELECT
-  uuid AS id,
-  ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
-  gemeinde_name,
-  to_jsonb(gemeinden) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemeinden WHERE kreis_schluessel = '13003'
-) TO STDOUT WITH CSV HEADER;
-END
-)"
-
-
 pg2csv $CSV_OUTDIR/gemeindeteile_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
@@ -151,7 +137,6 @@ FROM ${DBSCHEMA}.gemeindeteile WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
-
 
 pg2csv $CSV_OUTDIR/strassen_hro.csv "$(cat << END
 COPY (SELECT
@@ -176,24 +161,8 @@ COPY (SELECT
   gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(adressen_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.adressen_alle WHERE kreis_schluessel = '13003'
-) TO STDOUT WITH CSV HEADER;
-END
-)"
-
-pg2csv $CSV_OUTDIR/adressen_historisch_hro.csv "$(cat << END
-COPY (SELECT
-  uuid AS id,
-  ST_AsText(geometrie) AS geometrie,
-  strasse_name,
-  postleitzahl,
-  gemeindeteil_name,
-  gemeinde_name,
-  hausnummer AS hausnummer_int,
-  hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(adressen_historisch) - 'geometrie' AS json
-FROM ${DBSCHEMA}.adressen_historisch
+  to_jsonb(adressen_hro_geocodr) - 'geometrie' AS json
+FROM ${DBSCHEMA}.adressen_hro_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -236,25 +205,8 @@ COPY (SELECT
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_alle WHERE kreis_schluessel = '13003'
-) TO STDOUT WITH CSV HEADER;
-END
-)"
-
-pg2csv $CSV_OUTDIR/flurstuecke_historisch_hro.csv "$(cat << END
-COPY (SELECT
-  uuid AS id,
-  ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) AS geometrie,
-  gemarkung_name,
-  gemeinde_name,
-  flur,
-  zaehler,
-  nenner,
-  flurstuecksnummer,
-  flurstueckskennzeichen,
-  to_jsonb(flurstuecke_historisch_mit_gemarkung_name) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_historisch_mit_gemarkung_name WHERE geometrieinformation IS NOT NULL
+  to_jsonb(flurstuecke_hro_geocodr) - 'geometrie' AS json
+FROM ${DBSCHEMA}.flurstuecke_hro_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -276,4 +228,3 @@ FROM ${DBSCHEMA}.schulen
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
-

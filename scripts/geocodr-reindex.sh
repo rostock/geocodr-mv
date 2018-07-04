@@ -22,11 +22,8 @@ flurstuecke
 adressen_hro
 fluren_hro
 gemarkungen_hro
-gemeinden_hro
 gemeindeteile_hro
 strassen_hro
 flurstuecke_hro
-flurstuecke_historisch_hro
-adressen_historisch_hro
 EOF
 
