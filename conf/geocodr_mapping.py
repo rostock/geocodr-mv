@@ -642,3 +642,53 @@ class Schulen(Adressen):
         parts.append(prop['art'])
         parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'])
         return ', '.join(parts)
+
+
+class OrkaApp(Collection):
+    class_ = 'orka-app'
+    class_title = 'ORKa.MV-App'
+    name = 'orka-app'
+    title = 'ORKa.MV-App'
+    fields = ('bezeichnung', 'kategorie', 'kategorie_titel')
+    qfields = (
+        SimpleField('bezeichnung') ^ 4.2,
+        NGramField('bezeichnung_ngram') ^ 1.8,
+        SimpleField('kategorie') ^ 0.5,
+        NGramField('kategorie_ngram') ^ 0.3,
+        SimpleField('kategorie_titel') ^ 0.5,
+        NGramField('kategorie_titel_ngram') ^ 0.3,
+    )
+    sort = 'score DESC, kategorie ASC, bezeichnung ASC'
+    sort_fields = ('kategorie', 'bezeichnung')
+    collection_rank = 2.5
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['kategorie_titel'])
+        parts.append(prop['bezeichnung'])
+        return ', '.join(parts)
+
+
+class Stadtteillotse(Collection):
+    class_ = 'stadtteillotse'
+    class_title = 'Stadtteillotse Rostock'
+    name = 'stadtteillotse'
+    title = 'Stadtteillotse Rostock'
+    fields = ('bezeichnung', 'kategorie', 'kategorie_titel')
+    qfields = (
+        SimpleField('bezeichnung') ^ 4.2,
+        NGramField('bezeichnung_ngram') ^ 1.8,
+        SimpleField('kategorie') ^ 0.5,
+        NGramField('kategorie_ngram') ^ 0.3,
+        SimpleField('kategorie_titel') ^ 0.5,
+        NGramField('kategorie_titel_ngram') ^ 0.3,
+    )
+    sort = 'score DESC, kategorie ASC, bezeichnung ASC'
+    sort_fields = ('kategorie', 'bezeichnung')
+    collection_rank = 2.5
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['kategorie_titel'])
+        parts.append(prop['bezeichnung'])
+        return ', '.join(parts)
