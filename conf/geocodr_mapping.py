@@ -649,24 +649,27 @@ class OrkaApp(Collection):
     class_title = 'ORKa.MV-App'
     name = 'orka-app'
     title = 'ORKa.MV-App'
-    fields = ('bezeichnung', 'kategorie', 'kategorie_titel')
+    fields = ('name', 'category', 'category_title')
     qfields = (
-        SimpleField('bezeichnung') ^ 4.2,
-        NGramField('bezeichnung_ngram') ^ 1.8,
-        SimpleField('kategorie') ^ 0.5,
-        NGramField('kategorie_ngram') ^ 0.3,
-        SimpleField('kategorie_titel') ^ 0.5,
-        NGramField('kategorie_titel_ngram') ^ 0.3,
+        SimpleField('name') ^ 4.2,
+        NGramField('name_ngram') ^ 1.8,
+        SimpleField('category') ^ 0.5,
+        NGramField('category_ngram') ^ 0.3,
+        SimpleField('category_title') ^ 0.5,
+        NGramField('category_title_ngram') ^ 0.3,
     )
-    sort = 'score DESC, kategorie ASC, bezeichnung ASC'
-    sort_fields = ('kategorie', 'bezeichnung')
+    sort = 'score DESC, category ASC, name ASC'
+    sort_fields = ('category', 'name')
     collection_rank = 2.5
 
     def to_title(self, prop):
-        parts = []
-        parts.append(prop['kategorie_titel'])
-        parts.append(prop['bezeichnung'])
-        return ', '.join(parts)
+        if prop['name']:
+            parts = []
+            parts.append(prop['category_title'])
+            parts.append(prop['name'])
+            return ', '.join(parts)
+        else:
+            return prop['category_title']
 
 
 class Stadtteillotse(Collection):
@@ -674,21 +677,24 @@ class Stadtteillotse(Collection):
     class_title = 'Stadtteillotse Rostock'
     name = 'stadtteillotse'
     title = 'Stadtteillotse Rostock'
-    fields = ('bezeichnung', 'kategorie', 'kategorie_titel')
+    fields = ('name', 'category', 'category_title')
     qfields = (
-        SimpleField('bezeichnung') ^ 4.2,
-        NGramField('bezeichnung_ngram') ^ 1.8,
-        SimpleField('kategorie') ^ 0.5,
-        NGramField('kategorie_ngram') ^ 0.3,
-        SimpleField('kategorie_titel') ^ 0.5,
-        NGramField('kategorie_titel_ngram') ^ 0.3,
+        SimpleField('name') ^ 4.2,
+        NGramField('name_ngram') ^ 1.8,
+        SimpleField('category') ^ 0.5,
+        NGramField('category_ngram') ^ 0.3,
+        SimpleField('category_title') ^ 0.5,
+        NGramField('category_title_ngram') ^ 0.3,
     )
-    sort = 'score DESC, kategorie ASC, bezeichnung ASC'
-    sort_fields = ('kategorie', 'bezeichnung')
+    sort = 'score DESC, category ASC, name ASC'
+    sort_fields = ('category', 'name')
     collection_rank = 2.5
 
     def to_title(self, prop):
-        parts = []
-        parts.append(prop['kategorie_titel'])
-        parts.append(prop['bezeichnung'])
-        return ', '.join(parts)
+        if prop['name']:
+            parts = []
+            parts.append(prop['category_title'])
+            parts.append(prop['name'])
+            return ', '.join(parts)
+        else:
+            return prop['category_title']

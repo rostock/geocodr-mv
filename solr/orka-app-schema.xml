@@ -26,16 +26,16 @@
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
-  <field name="kategorie" type="name_fold" stored="true"/>
-  <field name="kategorie_ngram" type="name_ngram" stored="false"/>
-  <field name="kategorie_titel" type="name_fold" stored="true"/>
-  <field name="kategorie_titel_ngram" type="name_ngram" stored="false"/>
-  <field name="bezeichnung" type="name_fold" stored="true"/>
-  <field name="bezeichnung_ngram" type="name_ngram" stored="false"/>
+  <field name="category" type="name_fold" stored="true"/>
+  <field name="category_ngram" type="name_ngram" stored="false"/>
+  <field name="category_title" type="name_fold" stored="true"/>
+  <field name="category_title_ngram" type="name_ngram" stored="false"/>
+  <field name="name" type="name_fold" stored="true"/>
+  <field name="name_ngram" type="name_ngram" stored="false"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
-  <copyField source="kategorie" dest="kategorie_ngram"/>
-  <copyField source="kategorie_titel" dest="kategorie_titel_ngram"/>
-  <copyField source="bezeichnung" dest="bezeichnung_ngram"/>
+  <copyField source="category" dest="category_ngram"/>
+  <copyField source="category_title" dest="category_title_ngram"/>
+  <copyField source="name" dest="name_ngram"/>
 </schema>

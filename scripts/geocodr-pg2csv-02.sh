@@ -32,26 +32,26 @@ function pg2csv {
 
 pg2csv $CSV_OUTDIR/orka-app.csv "$(cat << END
 COPY (SELECT
-  osm_id AS id,
+  id,
   ST_AsText(geometrie) AS geometrie,
-  bezeichnung,
-  kategorie,
-  kategorie_titel,
+  name,
+  category,
+  category_title,
   to_jsonb(geocodr) - 'geometrie' AS json
-FROM ${DBSCHEMA}.geocodr WHERE orka_app IS TRUE AND kategorie IS NOT NULL
+FROM ${DBSCHEMA}.geocodr WHERE orka_app IS TRUE AND category IS NOT NULL
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
 
 pg2csv $CSV_OUTDIR/stadtteillotse.csv "$(cat << END
 COPY (SELECT
-  osm_id AS id,
+  id,
   ST_AsText(geometrie) AS geometrie,
-  bezeichnung,
-  kategorie,
-  kategorie_titel,
+  name,
+  category,
+  category_title,
   to_jsonb(geocodr) - 'geometrie' AS json
-FROM ${DBSCHEMA}.geocodr WHERE stadtteillotse IS TRUE AND kategorie IS NOT NULL
+FROM ${DBSCHEMA}.geocodr WHERE stadtteillotse IS TRUE AND category IS NOT NULL
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
