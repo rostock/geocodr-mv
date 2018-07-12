@@ -16,7 +16,11 @@ from geocodr.search import (
 
 gemarkung_prefix = '13' # Prefix added to 4-digit Gemarkungsnummern (13=Mecklenburg-Vorpommern)
 
+
 class Collection(BaseCollection):
+    """
+    Base class for all Collections. Sets project dependent options like projection, etc.
+    """
     # all geometries are in EPSG:25833
     src_proj = proj.epsg(25833)
 
@@ -32,13 +36,13 @@ class Collection(BaseCollection):
 
 def ReplaceStrasse(field):
     """
-    Wrap field with pattern replace. We replace straße suffix with str (all
-    case-insensitive). This is already implemented in the Solr schema, but it
+    Wrap field with pattern replace. We replace str, stra, ..., straße suffix with
+    str (all case-insensitive). This is already implemented in the Solr schema, but it
     does not work with our NGramField, as we build the grams on our own.
     A boost must be applied to the field, not this wrapped result.
     """
     return PatternReplace(
-        r'(?i)stra(ß|ss)e\b', 'str.',
+        r'(?i)str(a((ß|ss?)e?)?)?\b', 'str.',
         PatternReplace(r'\Bstr.', ' str.', field)
     )
 
