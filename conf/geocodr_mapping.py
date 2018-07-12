@@ -7,7 +7,7 @@ from datetime import datetime
 from geocodr import proj
 from geocodr.search import (
     Collection as BaseCollection,
-    NGramField,
+    GermanNGramField as NGramField,
     SimpleField,
     PrefixField,
     Only,
