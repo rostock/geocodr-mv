@@ -112,7 +112,10 @@ END
 pg2csv $CSV_OUTDIR/flurstuecke.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
-  ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0)) AS geometrie,
+  CASE
+   WHEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) ~ 'EMPTY' THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0))
+  END AS geometrie,
   gemarkung_name,
   gemeinde_name,
   flur,
@@ -197,7 +200,10 @@ END
 pg2csv $CSV_OUTDIR/flurstuecke_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
-  ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.01), 0)) AS geometrie,
+  CASE
+   WHEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) ~ 'EMPTY' THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.01), 0))
+   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0))
+  END AS geometrie,
   gemarkung_name,
   gemeinde_name,
   flur,
