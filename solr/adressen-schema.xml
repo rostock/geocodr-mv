@@ -22,15 +22,18 @@
       <filter class="solr.NGramFilterFactory" maxGramSize="3" minGramSize="3"/>
     </analyzer>
   </fieldType>
-  <fieldType name="hausnummer" class="solr.TextField">
-  <!--  Housenumbers including suffix (12a). -->
+  <fieldType name="hausnummer_engram" class="solr.TextField">
+    <!--  Housenumbers including suffix (12a) as edge n-gram for prefix search (at least 1 digit required).-->
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.EdgeNGramFilterFactory" maxGramSize="4" minGramSize="1"/>
     </analyzer>
   </fieldType>
   <!--  Numeric housenumbers for sorting. -->
   <fieldType name="hausnummer_int" class="solr.IntPointField"/>
+  <!--  Numeric street keys for sorting. -->
+  <fieldType name="strasse_schluessel_int" class="solr.IntPointField"/>
   <fieldType name="json" class="solr.StrField"/>
   <fieldType name="location_xy_rpt" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.15" format="WKT" autoIndex="true"/>
   <fieldType name="name_fold" class="solr.TextField">
@@ -95,13 +98,14 @@
   <field name="gemeindeteil_name" type="name_fold" stored="true"/>
   <field name="gemeindeteil_name_ngram" type="name_ngram" stored="false"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
-  <field name="hausnummer" type="hausnummer" stored="true"/>
+  <field name="hausnummer" type="hausnummer_engram" stored="true"/>
   <field name="hausnummer_int" type="hausnummer_int" stored="true"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
   <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
   <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
+  <field name="strasse_schluessel_int" type="strasse_schluessel_int" stored="false"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>
   <copyField source="strasse_name" dest="strasse_name_ngram"/>
