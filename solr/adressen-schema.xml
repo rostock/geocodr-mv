@@ -32,8 +32,6 @@
   </fieldType>
   <!--  Numeric housenumbers for sorting. -->
   <fieldType name="hausnummer_int" class="solr.IntPointField"/>
-  <!--  Numeric street keys for sorting. -->
-  <fieldType name="strasse_schluessel_int" class="solr.IntPointField"/>
   <fieldType name="json" class="solr.StrField"/>
   <fieldType name="location_xy_rpt" class="solr.RptWithGeometrySpatialField" geo="false" maxDistErr="0.1" spatialContextFactory="JTS" worldBounds="ENVELOPE(-20037508.3427892, 20037508.3427892, 20037508.3427892, -20037508.3427892)" distErrPct="0.15" format="WKT" autoIndex="true"/>
   <fieldType name="name_fold" class="solr.TextField">
@@ -105,7 +103,7 @@
   <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
   <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
-  <field name="strasse_schluessel_int" type="strasse_schluessel_int" stored="false"/>
+  <field name="strasse_schluessel" type="string" stored="false"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>
   <copyField source="strasse_name" dest="strasse_name_ngram"/>

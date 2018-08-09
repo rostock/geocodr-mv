@@ -47,12 +47,6 @@ def ReplaceStrasse(field):
     )
 
 
-#def WildcardFlurstuecksnummer(field):
-#    return PatternReplace(
-#        r'\Bstr.', ' str.', field
-#    )
-
-
 class Strassen(Collection):
     class_ = 'address'
     class_title = 'Adresse'
@@ -104,7 +98,7 @@ class Adressen(Collection):
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
     sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, ' \
-        'strasse_schluessel_int ASC, hausnummer_int ASC, hausnummer ASC'
+        'strasse_schluessel ASC, hausnummer_int ASC, hausnummer ASC'
 
     def to_title(self, prop):
         parts = []
@@ -124,7 +118,7 @@ class Adressen(Collection):
         return (
             doc['gemeinde_name'],
             doc['strasse_name'],
-            doc['strasse_schluessel_int'],
+            doc['strasse_schluessel'],
             # sort by integer value only
             int(re.match(r'\d+', doc['hausnummer']).group(0)),
             doc['hausnummer'],
@@ -247,7 +241,7 @@ class AdressenHro(Collection):
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
     sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, ' \
-        'strasse_schluessel_int ASC, hausnummer_int ASC, hausnummer ASC'
+        'strasse_schluessel ASC, hausnummer_int ASC, hausnummer ASC'
 
     def to_title(self, prop):
         parts = []
@@ -263,7 +257,7 @@ class AdressenHro(Collection):
         """
         return (
             doc['strasse_name'],
-            doc['strasse_schluessel_int'],
+            doc['strasse_schluessel'],
             # sort by integer value only
             int(re.match(r'\d+', doc['hausnummer']).group(0)),
             doc['hausnummer'],
@@ -590,10 +584,6 @@ class FlurstueckeHro(Collection):
         return ', '.join(parts)
 
     def query(self, query):
-        #if re.match(r'^4577$', query):
-        #    query = '*,*,4577'
-        #    return Collection.query(self, query)
-        
         """
         Manually build Solr query for parcel identifiers (Flurstückkennzeichen).
         parse_flst splits different formats of the identifiers into their
@@ -644,7 +634,7 @@ class Schulen(Adressen):
         # search for zip codes only in postleitzahl
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
-    sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, strasse_schluessel_int ASC, ' \
+    sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, strasse_schluessel ASC, ' \
         'bezeichnung ASC, hausnummer_int ASC, hausnummer ASC'
     sort_fields = ('gemeinde_name', 'strasse_name')
     collection_rank = 2.5
