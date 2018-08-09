@@ -115,7 +115,7 @@ class Adressen(Collection):
         Sort order for docs with same score.
         """
         return (
-            doc['gemeindeteil_name'],
+            doc['gemeinde_name'],
             doc['strasse_name'],
             # sort by integer value only
             int(re.match(r'\d+', doc['hausnummer']).group(0)),
@@ -254,7 +254,6 @@ class AdressenHro(Collection):
         Sort order for docs with same score.
         """
         return (
-            doc['gemeindeteil_name'],
             doc['strasse_name'],
             # sort by integer value only
             int(re.match(r'\d+', doc['hausnummer']).group(0)),
