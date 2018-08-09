@@ -246,7 +246,7 @@ class AdressenHro(Collection):
         parts.append(prop['gemeindeteil_name'])
         parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'] + (prop['hausnummer_zusatz'] or ''))
         if prop['gueltigkeit_bis']:
-            parts[-1] += ' (historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y') + ')'
+            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y')
         return ', '.join(parts)
 
     def sort_tiebreaker(self, doc):
@@ -323,7 +323,7 @@ class Gemarkungen(Collection):
         parts.append(prop['gemeinde_name'])
         if prop['gemeinde_name_suchzusatz']:
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
-        parts.append(prop['gemarkung_name'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
         return ', '.join(parts)
 
     def query(self, query):
@@ -354,7 +354,7 @@ class Fluren(Collection):
         parts.append(prop['gemeinde_name'])
         if prop['gemeinde_name_suchzusatz']:
             parts[-1] += ' ' + prop['gemeinde_name_suchzusatz']
-        parts.append(prop['gemarkung_name'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
         parts.append('Flur ' + str(int(prop['flur'], 10)))
         return ', '.join(parts)
 
@@ -424,7 +424,7 @@ class Flurstuecke(Collection):
         parts.append(prop['gemeinde_name'])
         if prop['gemeinde_name_suchzusatz']:
             parts.append(prop['gemeinde_name_suchzusatz'])
-        parts.append(prop['gemarkung_name'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
         parts.append('Flur ' + str(int(prop['flur'], 10)))
         parts.append(str(int(prop['zaehler'], 10)))
         if prop['nenner'] != '0000':
@@ -477,7 +477,7 @@ class GemarkungenHro(Collection):
     collection_rank = 1
 
     def to_title(self, prop):
-        return prop['gemarkung_name']
+        return prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')'
 
     def query(self, query):
         if re.match(r'^\d{4,4}$', query):
@@ -504,7 +504,7 @@ class FlurenHro(Collection):
 
     def to_title(self, prop):
         parts = []
-        parts.append(prop['gemarkung_name'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
         parts.append('Flur ' + str(int(prop['flur'], 10)))
         return ', '.join(parts)
 
@@ -571,13 +571,13 @@ class FlurstueckeHro(Collection):
 
     def to_title(self, prop):
         parts = []
-        parts.append(prop['gemarkung_name'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
         parts.append('Flur ' + str(int(prop['flur'], 10)))
         parts.append(str(int(prop['zaehler'], 10)))
         if prop['nenner'] != '0000':
             parts[-1] += '/' + str(int(prop['nenner'], 10))
         if prop['gueltigkeit_bis']:
-            parts[-1] += ' (historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y') + ')'
+            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y')
         return ', '.join(parts)
 
     def query(self, query):
