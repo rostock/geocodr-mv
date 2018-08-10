@@ -92,8 +92,8 @@ class Adressen(Collection):
         NGramField('gemeinde_name_ngram') ^ 0.4,
         SimpleField('gemeindeteil_name') ^ 0.8,
         NGramField('gemeindeteil_name_ngram') ^ 0.6,
-        # search for hausnumbers only in hausnummer
-        Only('^\d{1,3}[a-zA-Z]{,2}$', SimpleField('hausnummer')),
+        # search for housenumbers only in hausnummer
+        Only('^\d{1,3}[a-zA-Z]{,2}$', PrefixField('hausnummer', 1)),
         # search for zip codes only in postleitzahl
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
@@ -235,8 +235,8 @@ class AdressenHro(Collection):
         NGramField('gemeinde_name_ngram') ^ 0.4,
         SimpleField('gemeindeteil_name') ^ 0.8,
         NGramField('gemeindeteil_name_ngram') ^ 0.6,
-        # search for hausnumbers only in hausnummer
-        Only('^\d{1,3}[a-zA-Z]{,2}$', SimpleField('hausnummer')),
+        # search for housenumbers only in hausnummer
+        Only('^\d{1,3}[a-zA-Z]{,2}$', PrefixField('hausnummer', 1)),
         # search for zip codes only in postleitzahl
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
@@ -629,8 +629,8 @@ class Schulen(Adressen):
         NGramField('gemeinde_name_ngram') ^ 0.4,
         SimpleField('gemeindeteil_name') ^ 0.8,
         NGramField('gemeindeteil_name_ngram') ^ 0.6,
-        # search for hausnumbers only in hausnummer
-        Only('^\d{1,3}[a-zA-Z]{,2}$', SimpleField('hausnummer')),
+        # search for housenumbers only in hausnummer
+        Only('^\d{1,3}[a-zA-Z]{,2}$', PrefixField('hausnummer', 1)),
         # search for zip codes only in postleitzahl
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
