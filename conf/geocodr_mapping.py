@@ -36,15 +36,16 @@ class Collection(BaseCollection):
 
 def ReplaceStrasse(field):
     """
-    Wrap field with pattern replace. We replace str, stra, ..., straße suffix with
-    str (all case-insensitive). This is already implemented in the Solr schema, but it
-    does not work with our NGramField, as we build the grams on our own.
+    Wrap field with pattern replace. We replace all forms of wrong apostrophes
+    with correct apostrophes as well as str, stra, ..., straße suffix
+    with str (all case-insensitive). This is already implemented in the Solr schema,
+    but it does not work with our NGramField, as we build the grams on our own.
     A boost must be applied to the field, not this wrapped result.
     """
-    return PatternReplace(
+    return PatternReplace('′', '’', PatternReplace('´', '’', PatternReplace('`', '’', PatternReplace('‘', '’', PatternReplace('\'', '’', PatternReplace(
         r'(?i)str(a((ß|ss?)e?)?)?\b', 'str.',
         PatternReplace(r'\Bstr.', ' str.', field)
-    )
+    ))))))
 
 
 class Strassen(Collection):
