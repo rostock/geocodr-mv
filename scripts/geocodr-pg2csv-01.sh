@@ -35,6 +35,8 @@ COPY (SELECT
   uuid AS id,
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
   gemeinde_name,
+  ST_Area(geometrie) as gemeinde_flaeche,
+  gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
   to_jsonb(gemeinden) - 'geometrie' AS json
 FROM ${DBSCHEMA}.gemeinden
 ) TO STDOUT WITH CSV HEADER;
@@ -47,6 +49,7 @@ COPY (SELECT
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
   gemeinde_name,
   gemeindeteil_name,
+  ST_Area(geometrie) as gemeindeteil_flaeche,
   to_jsonb(gemeindeteile) - 'geometrie' AS json
 FROM ${DBSCHEMA}.gemeindeteile
 ) TO STDOUT WITH CSV HEADER;
@@ -56,29 +59,36 @@ END
 pg2csv $CSV_OUTDIR/strassen.csv "$(cat << END
 COPY (SELECT
   row_number() OVER () AS id,
-  ST_AsText(ST_Simplify(geometrie, 1)) AS geometrie,
-  gemeinde_name,
+  ST_AsText(ST_Simplify(s.geometrie, 1)) AS geometrie,
+  s.gemeinde_name,
   gemeindeteil_name,
   strasse_name,
-  to_jsonb(strassen_alle_mit_gemeindeteil) - 'geometrie' AS json
-FROM ${DBSCHEMA}.strassen_alle_mit_gemeindeteil
+  ST_Length(s.geometrie) as strasse_laenge,
+  ST_Area(g.geometrie) as gemeinde_flaeche,
+  s.gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
+  to_jsonb(s) - 'geometrie' AS json
+FROM ${DBSCHEMA}.strassen_alle_mit_gemeindeteil s
+LEFT JOIN ${DBSCHEMA}.gemeinden g ON g.gemeinde_schluessel = s.gemeinde_schluessel
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
 
 pg2csv $CSV_OUTDIR/adressen.csv "$(cat << END
 COPY (SELECT
-  uuid AS id,
-  ST_AsText(geometrie) AS geometrie,
+  a.uuid AS id,
+  ST_AsText(a.geometrie) AS geometrie,
   strasse_name,
   strasse_schluessel,
   postleitzahl,
   gemeindeteil_name,
-  gemeinde_name,
+  a.gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(adressen_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.adressen_alle
+  ST_Area(g.geometrie) as gemeinde_flaeche,
+  a.gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
+  to_jsonb(a) - 'geometrie' AS json
+FROM ${DBSCHEMA}.adressen_alle a
+LEFT JOIN ${DBSCHEMA}.gemeinden g ON g.gemeinde_schluessel = a.gemeinde_schluessel
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -136,6 +146,7 @@ COPY (SELECT
   ST_AsText(ST_Buffer(ST_Simplify(geometrie, 5), 0)) AS geometrie,
   gemeinde_name,
   gemeindeteil_name,
+  ST_Area(geometrie) as gemeindeteil_flaeche,
   to_jsonb(gemeindeteile) - 'geometrie' AS json
 FROM ${DBSCHEMA}.gemeindeteile WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
@@ -149,6 +160,7 @@ COPY (SELECT
   gemeinde_name,
   gemeindeteil_name,
   strasse_name,
+  ST_Length(geometrie) as strasse_laenge,
   to_jsonb(strassen_alle_mit_gemeindeteil) - 'geometrie' AS json
 FROM ${DBSCHEMA}.strassen_alle_mit_gemeindeteil WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;

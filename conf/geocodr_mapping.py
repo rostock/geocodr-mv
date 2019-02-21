@@ -74,6 +74,18 @@ class Strassen(Collection):
         parts.append(prop['strasse_name'])
         return ', '.join(parts)
 
+    def sort_tiebreaker(self, doc):
+        """
+        Sort order for docs with same score.
+        """
+        return (
+            not doc['gemeinde_ist_stadt'],
+            -doc['gemeinde_flaeche'],
+            # longest first
+            -doc['strasse_laenge'],
+            doc['gemeinde_name'],
+            doc['strasse_name'],
+        )
 
 class Adressen(Collection):
     class_ = 'address'
@@ -98,7 +110,7 @@ class Adressen(Collection):
         # search for zip codes only in postleitzahl
         Only('^\d{3,5}$', PrefixField('postleitzahl')),
     )
-    sort = 'score DESC, gemeinde_name ASC, strasse_name ASC, ' \
+    sort = 'score DESC, gemeinde_ist_stadt DESC, gemeinde_name ASC, strasse_name ASC, ' \
         'strasse_schluessel ASC, hausnummer_int ASC, hausnummer ASC'
 
     def to_title(self, prop):
@@ -117,7 +129,8 @@ class Adressen(Collection):
         Sort order for docs with same score.
         """
         return (
-            doc['gemeinde_name'],
+            not doc['gemeinde_ist_stadt'],
+            -doc['gemeinde_flaeche'],
             doc['strasse_name'],
             doc['strasse_schluessel'],
             # sort by integer value only
@@ -161,6 +174,18 @@ class Gemeinden(Collection):
     sort_fields = ('gemeinde_name', )
     collection_rank = 1
 
+    def sort_tiebreaker(self, doc):
+        """
+        Sort order for docs with same score.
+        """
+        return (
+            # stadt first
+            not doc['gemeinde_ist_stadt'],
+            # largest first
+            -doc['gemeinde_flaeche'],
+            doc['gemeinde_name'],
+        )
+
     def to_title(self, prop):
         parts = []
         parts.append(prop['gemeinde_name'])
@@ -194,6 +219,14 @@ class GemeindeTeile(Collection):
             parts.append(prop['gemeindeteil_name'])
         return ', '.join(parts)
 
+    def sort_tiebreaker(self, doc):
+        """
+        Sort order for docs with same score.
+        """
+        return (
+            -doc['gemeindeteil_flaeche'],
+            doc['gemeinde_name'],
+        )
 
 class StrassenHro(Collection):
     class_ = 'address_hro'
@@ -216,6 +249,17 @@ class StrassenHro(Collection):
         parts.append(prop['gemeindeteil_name'])
         parts.append(prop['strasse_name'])
         return ', '.join(parts)
+
+    def sort_tiebreaker(self, doc):
+        """
+        Sort order for docs with same score.
+        """
+        return (
+            # longest first
+            -doc['strasse_laenge'],
+            doc['gemeinde_name'],
+            doc['strasse_name'],
+        )
 
 
 class AdressenHro(Collection):
@@ -303,6 +347,15 @@ class GemeindeTeileHro(Collection):
 
     def to_title(self, prop):
         return prop['gemeindeteil_name']
+
+    def sort_tiebreaker(self, doc):
+        """
+        Sort order for docs with same score.
+        """
+        return (
+            -doc['gemeindeteil_flaeche'],
+            doc['gemeinde_name'],
+        )
 
 
 class Gemarkungen(Collection):

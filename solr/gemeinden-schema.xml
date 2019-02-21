@@ -40,11 +40,15 @@
       <filter class="solr.NGramFilterFactory" maxGramSize="3" minGramSize="3"/>
     </analyzer>
   </fieldType>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="bool" class="solr.BoolField" docValues="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="gemeinde_name" type="gemeinde_name_fold" stored="true"/>
   <field name="gemeinde_name_ngram" type="gemeinde_name_ngram" stored="false"/>
+  <field name="gemeinde_flaeche" type="pfloat" stored="true"/>
+  <field name="gemeinde_ist_stadt" type="bool" stored="true"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>

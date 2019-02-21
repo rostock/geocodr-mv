@@ -7,6 +7,7 @@
   -->
   <uniqueKey>id</uniqueKey>
   <fieldType name="binary" class="solr.BinaryField"/>
+  <fieldType name="bool" class="solr.BoolField" docValues="true"/>
   <fieldType name="gemeinde_name_fold" class="solr.TextField">
     <analyzer>
       <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(, .*)" replacement=""/>
@@ -49,6 +50,7 @@
       <filter class="solr.NGramFilterFactory" maxGramSize="3" minGramSize="3"/>
     </analyzer>
   </fieldType>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
   <fieldType name="postleitzahl_engram" class="solr.TextField">
     <analyzer>
@@ -78,6 +80,8 @@
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="gemeinde_name" type="gemeinde_name_fold" stored="true"/>
   <field name="gemeinde_name_ngram" type="gemeinde_name_ngram" stored="false"/>
+  <field name="gemeinde_flaeche" type="pfloat" stored="true"/>
+  <field name="gemeinde_ist_stadt" type="bool" stored="true"/>
   <field name="gemeindeteil_name" type="name_fold" stored="true"/>
   <field name="gemeindeteil_name_ngram" type="name_ngram" stored="false"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
@@ -85,6 +89,7 @@
   <field name="json" type="json" indexed="false" stored="true"/>
   <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
+  <field name="strasse_laenge" type="pfloat" stored="true"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>
   <copyField source="strasse_name" dest="strasse_name_ngram"/>

@@ -49,6 +49,7 @@
       <filter class="solr.NGramFilterFactory" maxGramSize="3" minGramSize="3"/>
     </analyzer>
   </fieldType>
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
   <fieldType name="postleitzahl_engram" class="solr.TextField">
     <analyzer>
@@ -85,6 +86,7 @@
   <field name="json" type="json" indexed="false" stored="true"/>
   <field name="strasse_name" type="strasse_name_fold" stored="true"/>
   <field name="strasse_name_ngram" type="strasse_name_ngram" stored="false"/>
+  <field name="strasse_laenge" type="pfloat" stored="true"/>
   <copyField source="gemeinde_name" dest="gemeinde_name_ngram"/>
   <copyField source="gemeindeteil_name" dest="gemeindeteil_name_ngram"/>
   <copyField source="strasse_name" dest="strasse_name_ngram"/>
