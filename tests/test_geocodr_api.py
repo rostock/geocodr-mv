@@ -103,12 +103,12 @@ class JSONClient(object):
     ],
     scope='session',
 )
-def client(geocodr_url, solr_url, geocodr_test_key, request):
+def client(geocodr_url, solr_url, geocodr_test_key, geocodr_mapping, request):
     if solr_url != "":
         from geocodr.api import create_app
         app = create_app({
             'solr_url': solr_url,
-            'mapping': '../../api/geocodr_mapping.py', # TODO
+            'mapping': geocodr_mapping,
         })
         server = ServerThread(app)
         server.start()
