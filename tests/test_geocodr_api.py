@@ -121,11 +121,6 @@ def client(geocodr_url, solr_url, geocodr_test_key, geocodr_mapping, request):
 
         host_base = HOST_BASE
 
-        def teardown():
-            server.quit()
-
-        request.addfinalizer(teardown)
-
         geocodr_url = host_base
 
     if request.param == 'get':
@@ -657,6 +652,7 @@ class R(object):
         self.distance = distance
 
 
+distance_property = 'entfernung'
 def assert_results(res, expected):
     # __tracebackhide__ = True
 
@@ -690,7 +686,7 @@ def assert_results(res, expected):
             fi += 1
             if found:
                 if e.distance != -1:
-                    assert prop['_distance_'] <= e.distance, 'distance for {}'.format(prop)
+                    assert prop[distance_property] <= e.distance, 'distance for {}'.format(prop)
                 break
 
 HOST_BASE = "http://localhost:8521"
@@ -749,8 +745,4 @@ def web_server(request, app):
 
     host_base = HOST_BASE
 
-    def teardown():
-        server.quit()
-
-    request.addfinalizer(teardown)
     return host_base
