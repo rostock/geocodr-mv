@@ -496,15 +496,26 @@ class Flurstuecke(Collection):
         """
         from geocodr.lib.flst import parse_flst
         flst = parse_flst(query, gemarkung_prefix=gemarkung_prefix)
+        print(flst, query)
         if not flst:
             return
 
-        if not flst.gemarkung_name:
+        # Short form always contains zaehler, but no flur.
+        is_short_form = flst.zaehler and not flst.flur
+
+        # If we don't have a name, then we combine all parts to a single search prefix
+        # string. The parts are always from left to right in the long-form (e.g. if we have
+        # zaehler, we also have flur).
+        if not flst.gemarkung_name and not is_short_form:
             return 'flurstuecksnummer:' + flst.gemarkung + flst.flur \
                 + flst.zaehler + flst.nenner + '*'
 
         qparts = []
-        qparts = [Collection.query(self, flst.gemarkung_name)]
+
+        if flst.gemarkung_name:
+            qparts.append(Collection.query(self, flst.gemarkung_name))
+        elif flst.gemarkung:
+            qparts.append('flurstuecksnummer:' + flst.gemarkung + '*')
 
         if flst.flur:
             qparts.append('flur:' + flst.flur)
@@ -665,7 +676,7 @@ class FlurstueckeHro(Collection):
         return '{}'.format(' AND '.join(qparts))
 
 
-class Schulen(Adressen):
+class Schulen(Collection):
     class_ = 'school'
     class_title = 'Schule'
     name = 'schulen'
