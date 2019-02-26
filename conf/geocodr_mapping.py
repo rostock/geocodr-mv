@@ -459,6 +459,9 @@ class Flurstuecke(Collection):
     sort_fields = ('flurstueckskennzeichen', )
     collection_rank = 3
 
+
+    min_query_length = 2
+
     def to_features(self, docs, **kw):
         # Iterate through all docs and align scores.
         #
