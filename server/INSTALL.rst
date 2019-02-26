@@ -82,8 +82,8 @@ Install Geocodr (on one or more servers)::
     sudo pyvenv /usr/local/geocodr
     sudo -E /usr/local/geocodr/bin/pip install -r geocodr/conf/requirements-api.txt
     sudo -E /usr/local/geocodr/bin/pip install -r geocodr/conf/requirements-import.txt
-    sudo -E /usr/local/geocodr/bin/pip install geocodr/pkgs/geocodr-0.2.0-py2.py3-none-any.whl
-    sudo -E /usr/local/geocodr/bin/pip install geocodr/pkgs/geocodr_import-0.1-py2.py3-none-any.whl
+    sudo -E /usr/local/geocodr/bin/pip install geocodr/pkgs/geocodr-0.3.0-py2.py3-none-any.whl
+    sudo -E /usr/local/geocodr/bin/pip install geocodr/pkgs/geocodr_import-0.3.0-py2.py3-none-any.whl
 
 
 Install Geocodr configuration::
@@ -92,7 +92,7 @@ Install Geocodr configuration::
 
 Setup Zookeeper/Solr (only required on one server)::
 
-    /usr/local/geocodr/bin/geocodr-zk --zk-hosts localhost:2181 --config-dir /usr/local/geocodr-mv --push ALL
+    /usr/local/geocodr/bin/geocodr-zk --zk-hosts localhost:2181 --config-dir /usr/local/geocodr-mv/solr --push ALL
 
 Configure systemd and start geocodr-api::
 
