@@ -15,6 +15,7 @@ class Result(object):
     def __init__(self, resp):
         self.resp = resp
         self.doc = resp.json()
+        assert self.doc.get('type') == 'FeatureCollection', 'Result is not type=FeatureCollection'
 
     @property
     def features(self):
@@ -658,6 +659,40 @@ def test_strasse_suffix(client, term):
     ]
 
     assert_results(res, expected)
+
+
+def test_paging(client):
+    query = 'parkentin, flur 1'
+    min_total = 1000
+
+    def check(limit, offset, expected):
+        res = client.search(query, **{'class': 'parcel', 'limit': limit, 'offset': offset})
+        assert_results(res, expected)
+        assert res.doc['properties']['features_total'] >= min_total
+        assert res.doc['properties']['features_returned'] == limit
+        assert res.doc['properties']['features_offset'] == offset
+
+
+    check(1, 0, [
+        R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
+    ])
+    check(2, 0, [
+        R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+    ])
+    check(2, 1, [
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
+    ])
+    check(5, 0, [
+        R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0001'}),
+        R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin', 'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0002'}),
+    ])
+
+
 
 class R(object):
     """
