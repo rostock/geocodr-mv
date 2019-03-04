@@ -458,8 +458,6 @@ class Flurstuecke(Collection):
         'flurstuecksnummer ASC'
     sort_fields = ('flurstueckskennzeichen', )
     collection_rank = 3
-
-
     min_query_length = 2
 
     def to_features(self, docs, **kw):
@@ -499,7 +497,6 @@ class Flurstuecke(Collection):
         """
         from geocodr.lib.flst import parse_flst
         flst = parse_flst(query, gemarkung_prefix=gemarkung_prefix)
-        print(flst, query)
         if not flst:
             return
 
@@ -564,7 +561,7 @@ class FlurenHro(Collection):
     title = 'Flur HRO'
     fields = ('gemeinde_name', 'gemarkung_name', 'flur')
     qfields = (
-        NGramField('gemarkung_name_ngram') ^ 1.5,
+        NGramField('gemarkung_name_ngram'),
         SimpleField('gemarkung_name') ^ 3.0,
         NGramField('gemeinde_name_ngram'),
         SimpleField('gemeinde_name') ^ 2.0,
@@ -622,6 +619,7 @@ class FlurstueckeHro(Collection):
         'flurstuecksnummer ASC'
     sort_fields = ('flurstueckskennzeichen', )
     collection_rank = 3
+    min_query_length = 2
 
     def to_features(self, docs, **kw):
         # Iterate through all docs and align scores.
@@ -662,12 +660,22 @@ class FlurstueckeHro(Collection):
         if not flst:
             return
 
-        if not flst.gemarkung_name:
+        # Short form always contains zaehler, but no flur.
+        is_short_form = flst.zaehler and not flst.flur
+
+        # If we don't have a name, then we combine all parts to a single search prefix
+        # string. The parts are always from left to right in the long-form (e.g. if we have
+        # zaehler, we also have flur).
+        if not flst.gemarkung_name and not is_short_form:
             return 'flurstuecksnummer:' + flst.gemarkung + flst.flur \
                 + flst.zaehler + flst.nenner + '*'
 
         qparts = []
-        qparts = [Collection.query(self, flst.gemarkung_name)]
+
+        if flst.gemarkung_name:
+            qparts.append(Collection.query(self, flst.gemarkung_name))
+        elif flst.gemarkung:
+            qparts.append('flurstuecksnummer:' + flst.gemarkung + '*')
 
         if flst.flur:
             qparts.append('flur:' + flst.flur)
