@@ -14,6 +14,8 @@ PIDFile=/var/run/solr/solr-8983.pid
 Environment=SOLR_INCLUDE=/etc/default/solr
 ExecStart=/usr/local/solr/bin/solr start
 ExecStop=/usr/local/solr/bin/solr stop
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target graphical.target
