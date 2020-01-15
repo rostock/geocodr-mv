@@ -645,8 +645,8 @@ class FlurstueckeHro(Collection):
         parts.append(str(int(prop['zaehler'], 10)))
         if prop['nenner'] != '0000':
             parts[-1] += '/' + str(int(prop['nenner'], 10))
-        if prop['gueltigkeit_bis']:
-            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y')
+        if prop['historisch_seit']:
+            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['historisch_seit'], '%Y-%m-%d').strftime('%d.%m.%Y')
         return ', '.join(parts)
 
     def query(self, query):

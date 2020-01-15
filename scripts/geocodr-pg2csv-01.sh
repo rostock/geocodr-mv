@@ -134,8 +134,8 @@ COPY (SELECT
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_alle
+  to_jsonb(flurstuecke_geocodr) - 'geometrie' AS json
+FROM basisdaten.flurstuecke_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -225,8 +225,8 @@ COPY (SELECT
   nenner,
   flurstuecksnummer,
   flurstueckskennzeichen,
-  to_jsonb(flurstuecke_hro_geocodr) - 'geometrie' AS json
-FROM ${DBSCHEMA}.flurstuecke_hro_geocodr
+  to_jsonb(flurstuecke_geocodr_hro) - 'geometrie' AS json
+FROM basisdaten.flurstuecke_geocodr_hro
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
