@@ -37,8 +37,8 @@ COPY (SELECT
   gemeinde_name,
   ST_Area(geometrie) as gemeinde_flaeche,
   gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
-  to_jsonb(gemeinden) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemeinden
+  to_jsonb(gemeinden_geocodr) - 'geometrie' AS json
+FROM basisdaten.gemeinden_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -50,8 +50,8 @@ COPY (SELECT
   gemeinde_name,
   gemeindeteil_name,
   ST_Area(geometrie) as gemeindeteil_flaeche,
-  to_jsonb(gemeindeteile) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemeindeteile
+  to_jsonb(gemeindeteile_geocodr) - 'geometrie' AS json
+FROM basisdaten.gemeindeteile_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -100,8 +100,8 @@ COPY (SELECT
   gemarkung_name,
   gemarkung_schluessel,
   gemeinde_name,
-  to_jsonb(gemarkungen_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemarkungen_alle
+  to_jsonb(gemarkungen_geocodr) - 'geometrie' AS json
+FROM basisdaten.gemarkungen_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -114,8 +114,8 @@ COPY (SELECT
   gemarkung_schluessel,
   gemeinde_name,
   flur,
-  to_jsonb(fluren_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.fluren_alle
+  to_jsonb(fluren_geocodr) - 'geometrie' AS json
+FROM basisdaten.fluren_geocodr
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -147,8 +147,8 @@ COPY (SELECT
   gemeinde_name,
   gemeindeteil_name,
   ST_Area(geometrie) as gemeindeteil_flaeche,
-  to_jsonb(gemeindeteile) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemeindeteile WHERE kreis_schluessel = '13003'
+  to_jsonb(gemeindeteile_geocodr) - 'geometrie' AS json
+FROM basisdaten.gemeindeteile_geocodr WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -191,8 +191,8 @@ COPY (SELECT
   gemarkung_name,
   gemarkung_schluessel,
   gemeinde_name,
-  to_jsonb(gemarkungen_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.gemarkungen_alle WHERE kreis_schluessel = '13003'
+  to_jsonb(gemarkungen_geocodr) - 'geometrie' AS json
+FROM basisdaten.gemarkungen_geocodr WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -205,8 +205,8 @@ COPY (SELECT
   gemarkung_schluessel,
   gemeinde_name,
   flur,
-  to_jsonb(fluren_alle) - 'geometrie' AS json
-FROM ${DBSCHEMA}.fluren_alle WHERE kreis_schluessel = '13003'
+  to_jsonb(fluren_geocodr) - 'geometrie' AS json
+FROM basisdaten.fluren_geocodr WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
