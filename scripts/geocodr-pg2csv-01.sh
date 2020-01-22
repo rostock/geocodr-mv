@@ -58,7 +58,7 @@ END
 
 pg2csv $CSV_OUTDIR/strassen.csv "$(cat << END
 COPY (SELECT
-  row_number() OVER () AS id,
+  s.uuid AS id,
   ST_AsText(ST_Simplify(s.geometrie, 1)) AS geometrie,
   s.gemeinde_name,
   gemeindeteil_name,
@@ -67,8 +67,8 @@ COPY (SELECT
   ST_Area(g.geometrie) as gemeinde_flaeche,
   s.gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
   to_jsonb(s) - 'geometrie' AS json
-FROM regis.strassen_alle_mit_gemeindeteil s
-LEFT JOIN regis.gemeinden g ON g.gemeinde_schluessel = s.gemeinde_schluessel
+FROM ${DBSCHEMA}.strassen s
+LEFT JOIN ${DBSCHEMA}.gemeinden g ON g.gemeinde_schluessel = s.gemeinde_schluessel
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -87,8 +87,8 @@ COPY (SELECT
   ST_Area(g.geometrie) as gemeinde_flaeche,
   a.gemeinde_name ilike '%stadt' as gemeinde_ist_stadt,
   to_jsonb(a) - 'geometrie' AS json
-FROM regis.adressen_alle a
-LEFT JOIN regis.gemeinden g ON g.gemeinde_schluessel = a.gemeinde_schluessel
+FROM ${DBSCHEMA}.adressen a
+LEFT JOIN ${DBSCHEMA}.gemeinden g ON g.gemeinde_schluessel = a.gemeinde_schluessel
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -155,14 +155,14 @@ END
 
 pg2csv $CSV_OUTDIR/strassen_hro.csv "$(cat << END
 COPY (SELECT
-  row_number() OVER () AS id,
+  uuid AS id,
   ST_AsText(ST_Simplify(geometrie, 1)) AS geometrie,
   gemeinde_name,
   gemeindeteil_name,
   strasse_name,
   ST_Length(geometrie) as strasse_laenge,
-  to_jsonb(strassen_alle_mit_gemeindeteil) - 'geometrie' AS json
-FROM regis.strassen_alle_mit_gemeindeteil WHERE kreis_schluessel = '13003'
+  to_jsonb(strassen) - 'geometrie' AS json
+FROM ${DBSCHEMA}.strassen WHERE kreis_schluessel = '13003'
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
@@ -179,7 +179,7 @@ COPY (SELECT
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
   to_jsonb(adressen_hro) - 'geometrie' AS json
-FROM regis.adressen_hro
+FROM ${DBSCHEMA}.adressen_hro
 ) TO STDOUT WITH CSV HEADER;
 END
 )"

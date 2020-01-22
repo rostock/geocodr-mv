@@ -292,7 +292,9 @@ class AdressenHro(Collection):
         parts = []
         parts.append(prop['gemeindeteil_name'])
         parts.append(prop['strasse_name'] + ' ' + prop['hausnummer'] + (prop['hausnummer_zusatz'] or ''))
-        if prop['gueltigkeit_bis']:
+        if 'historisch_seit' in prop and prop['historisch_seit']:
+            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['historisch_seit'], '%Y-%m-%d').strftime('%d.%m.%Y')
+        elif 'gueltigkeit_bis' in prop and prop['gueltigkeit_bis']:
             parts[-1] += ' – historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y')
         return ', '.join(parts)
 
@@ -645,8 +647,10 @@ class FlurstueckeHro(Collection):
         parts.append(str(int(prop['zaehler'], 10)))
         if prop['nenner'] != '0000':
             parts[-1] += '/' + str(int(prop['nenner'], 10))
-        if prop['historisch_seit']:
+        if 'historisch_seit' in prop and prop['historisch_seit']:
             parts[-1] += ' – historisch seit ' + datetime.strptime(prop['historisch_seit'], '%Y-%m-%d').strftime('%d.%m.%Y')
+        elif 'gueltigkeit_bis' in prop and prop['gueltigkeit_bis']:
+            parts[-1] += ' – historisch seit ' + datetime.strptime(prop['gueltigkeit_bis'], '%Y-%m-%d').strftime('%d.%m.%Y')
         return ', '.join(parts)
 
     def query(self, query):
