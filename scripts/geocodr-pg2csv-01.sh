@@ -124,8 +124,8 @@ pg2csv $CSV_OUTDIR/flurstuecke.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   CASE
-   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
-   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0))
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
   END AS geometrie,
   gemarkung_name,
   gemeinde_name,
@@ -215,8 +215,8 @@ pg2csv $CSV_OUTDIR/flurstuecke_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   CASE
-   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.5), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.01), 0))
-   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.5), 0))
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
   END AS geometrie,
   gemarkung_name,
   gemeinde_name,
@@ -244,8 +244,8 @@ COPY (SELECT
   gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(schulen) - 'geometrie' AS json
-FROM regis.schulen
+  to_jsonb(schulen_regis_hro) - 'geometrie' AS json
+FROM fachdaten_adressbezug.schulen_regis_hro
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
