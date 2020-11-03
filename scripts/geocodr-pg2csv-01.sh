@@ -244,8 +244,8 @@ COPY (SELECT
   gemeinde_name,
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
-  to_jsonb(schulen_regis_hro) - 'geometrie' AS json
-FROM fachdaten_adressbezug.schulen_regis_hro
+  to_jsonb(schulen_hro) - 'geometrie' AS json
+FROM ${DBSCHEMA}.schulen_hro
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
