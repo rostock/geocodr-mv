@@ -691,6 +691,93 @@ class FlurstueckeHro(Collection):
         return '{}'.format(' AND '.join(qparts))
 
 
+class Flurstueckseigentuemer(Collection):
+    class_ = 'property_owner'
+    class_title = 'Flurstückseigentümer'
+    name = 'flurstueckseigentuemer'
+    title = 'Flurstückseigentümer'
+    fields = ('gemeinde_name', 'gemarkung_name', 'flurstueckskennzeichen', 'eigentuemer')
+    qfields = (
+        SimpleField('eigentuemer') ^ 4.2,
+        NGramField('eigentuemer_ngram') ^ 1.8,
+        NGramField('gemarkung_name_ngram'),
+        SimpleField('gemarkung_name') ^ 3.0,
+        NGramField('gemeinde_name_ngram'),
+        SimpleField('gemeinde_name') ^ 2.0,
+    )
+    sort = 'score DESC, gemeinde_name ASC, gemarkung_name ASC, ' \
+        'flurstuecksnummer ASC, eigentuemer ASC'
+    sort_fields = ('flurstueckskennzeichen', )
+    collection_rank = 3
+    min_query_length = 2
+
+    def to_features(self, docs, **kw):
+        # Iterate through all docs and align scores.
+        #
+        # SolrCloud can return different scores for identical search field.
+        # This is due to different document counts on different shards (even
+        # with ExactStatsCache). We iterate through all docs and check for
+        # a similar score.
+        prev_score = 0
+
+        for doc in docs:
+            if prev_score and prev_score/doc['score'] < 1.1:
+                doc['score'] = prev_score
+
+            prev_score = doc['score']
+
+        return Collection.to_features(self, docs, **kw)
+
+    def to_title(self, prop):
+        parts = []
+        parts.append(prop['gemeinde_name'])
+        if prop['gemeinde_name_suchzusatz']:
+            parts.append(prop['gemeinde_name_suchzusatz'])
+        parts.append(prop['gemarkung_name'] + ' (' + prop['gemarkung_schluessel'][2:] + ')')
+        parts.append('Flur ' + str(int(prop['flur'], 10)))
+        parts.append(str(int(prop['zaehler'], 10)))
+        if prop['nenner'] != '0000':
+            parts[-1] += '/' + str(int(prop['nenner'], 10))
+        return ', '.join(parts)
+
+    def query(self, query):
+        """
+        Manually build Solr query for parcel identifiers (Flurstückkennzeichen).
+        parse_flst splits different formats of the identifiers into their
+        parts, from left to right.
+        """
+        from geocodr.lib.flst import parse_flst
+        flst = parse_flst(query, gemarkung_prefix=gemarkung_prefix)
+        if not flst:
+            return
+
+        # Short form always contains zaehler, but no flur.
+        is_short_form = flst.zaehler and not flst.flur
+
+        # If we don't have a name, then we combine all parts to a single search prefix
+        # string. The parts are always from left to right in the long-form (e.g. if we have
+        # zaehler, we also have flur).
+        if not flst.gemarkung_name and not is_short_form:
+            return 'flurstuecksnummer:' + flst.gemarkung + flst.flur \
+                + flst.zaehler + flst.nenner + '*'
+
+        qparts = []
+
+        if flst.gemarkung_name:
+            qparts.append(Collection.query(self, flst.gemarkung_name))
+        elif flst.gemarkung:
+            qparts.append('flurstuecksnummer:' + flst.gemarkung + '*')
+
+        if flst.flur:
+            qparts.append('flur:' + flst.flur)
+        if flst.nenner:
+            qparts.append('nenner:' + flst.nenner)
+        if flst.zaehler:
+            qparts.append('zaehler:' + flst.zaehler)
+
+        return '{}'.format(' AND '.join(qparts))
+
+
 class Schulen(Collection):
     class_ = 'school'
     class_title = 'Schule'

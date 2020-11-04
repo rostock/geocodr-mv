@@ -231,6 +231,27 @@ FROM ${DBSCHEMA}.flurstuecke_hro
 END
 )"
 
+pg2csv $CSV_OUTDIR/flurstueckseigentuemer.csv "$(cat << END
+COPY (SELECT
+  uuid AS id,
+  CASE
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
+  END AS geometrie,
+  gemarkung_name,
+  gemeinde_name,
+  flur,
+  zaehler,
+  nenner,
+  flurstuecksnummer,
+  flurstueckskennzeichen,
+  eigentuemer,
+  to_jsonb(flurstueckseigentuemer) - 'geometrie' AS json
+FROM ${DBSCHEMA}.flurstueckseigentuemer
+) TO STDOUT WITH CSV HEADER;
+END
+)"
+
 pg2csv $CSV_OUTDIR/schulen.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
@@ -245,7 +266,7 @@ COPY (SELECT
   hausnummer AS hausnummer_int,
   hausnummer || coalesce(hausnummer_zusatz, '') AS hausnummer,
   to_jsonb(schulen_hro) - 'geometrie' AS json
-FROM ${DBSCHEMA}.schulen_hro
+FROM ${DBSCHEMA}.schulen
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
