@@ -124,7 +124,7 @@ pg2csv $CSV_OUTDIR/flurstuecke.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   CASE
-   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) OR ST_Buffer(ST_Simplify(geometrie, 0.4), 0) IS NULL THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
    ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
   END AS geometrie,
   gemarkung_name,
@@ -215,7 +215,7 @@ pg2csv $CSV_OUTDIR/flurstuecke_hro.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   CASE
-   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) OR ST_Buffer(ST_Simplify(geometrie, 0.4), 0) IS NULL THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
    ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
   END AS geometrie,
   gemarkung_name,
@@ -235,7 +235,7 @@ pg2csv $CSV_OUTDIR/flurstueckseigentuemer.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
   CASE
-   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
+   WHEN ST_IsEmpty(ST_Buffer(ST_Simplify(geometrie, 0.4), 0)) OR ST_Buffer(ST_Simplify(geometrie, 0.4), 0) IS NULL THEN ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.008), 0))
    ELSE ST_AsText(ST_Buffer(ST_Simplify(geometrie, 0.4), 0))
   END AS geometrie,
   gemarkung_name,
