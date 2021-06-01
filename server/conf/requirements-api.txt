@@ -4,6 +4,6 @@ idna==2.7
 pyproj==1.9.5.1
 requests==2.20.0
 Shapely==1.6.4.post1
-urllib3==1.24.2
+urllib3==1.26.5
 Werkzeug==0.14.1
 waitress==1.4.3
