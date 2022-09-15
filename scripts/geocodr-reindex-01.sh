@@ -26,5 +26,6 @@ gemarkungen_hro
 gemeindeteile_hro
 strassen_hro
 flurstuecke_hro
+postleitzahlengebiete
 EOF
 

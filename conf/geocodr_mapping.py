@@ -778,6 +778,23 @@ class Flurstueckseigentuemer(Collection):
         return '{}'.format(' AND '.join(qparts))
 
 
+class Postleitzahlengebiete(Collection):
+    class_ = 'postcode_areas'
+    class_title = 'Postleitzahlengebiet'
+    name = 'postleitzahlengebiete'
+    title = 'Postleitzahlengebiet'
+    fields = ('postleitzahl')
+    qfields = (
+        # search for zip codes only in postleitzahl
+        Only('^\d{4,5}$', PrefixField('postleitzahl')),
+    )
+    sort = 'score DESC, postleitzahl ASC'
+    collection_rank = 2.5
+
+    def to_title(self, prop):
+        return prop['postleitzahl']
+
+
 class Schulen(Collection):
     class_ = 'school'
     class_title = 'Schule'

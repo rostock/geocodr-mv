@@ -252,6 +252,17 @@ FROM ${DBSCHEMA}.flurstueckseigentuemer
 END
 )"
 
+pg2csv $CSV_OUTDIR/postleitzahlengebiete.csv "$(cat << END
+COPY (SELECT
+  uuid AS id,
+  ST_AsText(geometrie) AS geometrie,
+  postleitzahl,
+  to_jsonb(postleitzahlengebiete) - 'geometrie' AS json
+FROM ${DBSCHEMA}.postleitzahlengebiete
+) TO STDOUT WITH CSV HEADER;
+END
+)"
+
 pg2csv $CSV_OUTDIR/schulen.csv "$(cat << END
 COPY (SELECT
   uuid AS id,
