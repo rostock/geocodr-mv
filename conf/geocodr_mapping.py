@@ -783,13 +783,14 @@ class Postleitzahlengebiete(Collection):
     class_title = 'Postleitzahlengebiet'
     name = 'postleitzahlengebiete'
     title = 'Postleitzahlengebiet'
-    fields = ('postleitzahl')
+    fields = ('postleitzahl',)
     qfields = (
-        # search for zip codes only in postleitzahl
         Only('^\d{4,5}$', PrefixField('postleitzahl')),
     )
     sort = 'score DESC, postleitzahl ASC'
-    collection_rank = 2.5
+    sort_fields = ('postleitzahl', )
+    collection_rank = 1
+    min_query_length = 4
 
     def to_title(self, prop):
         return prop['postleitzahl']

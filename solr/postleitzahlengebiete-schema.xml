@@ -6,7 +6,7 @@
   ===============================================
   -->
   <uniqueKey>id</uniqueKey>
-  <fieldType name="postleitzahl_engram" class="solr.TextField">
+  <fieldType name="engram" class="solr.TextField">
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.EdgeNGramFilterFactory" maxGramSize="5" minGramSize="4"/>
@@ -17,7 +17,7 @@
   <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
-  <field name="postleitzahl" type="postleitzahl_engram" stored="true"/>
+  <field name="postleitzahl" type="engram" stored="true"/>
   <field name="geometrie" type="location_xy_rpt" stored="false"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="json" type="json" indexed="false" stored="true"/>
