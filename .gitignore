@@ -1,2 +1,10 @@
+# compiled data and cache
+__pycache__/
+*.py[cod]
+
+# geocodr-mv
 .pytest_cache
 conf/apikeys.csv
+
+# PyCharm
+.idea/

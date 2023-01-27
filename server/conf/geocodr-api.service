@@ -1,5 +1,5 @@
 [Unit]
-Description=Geocodr API
+Description=geocodr API
 After=syslog.target network.target remote-fs.target nss-lookup.target systemd-journald-dev-log.socket
 Before=multi-user.target graphical.target nginx.service
 Conflicts=shutdown.target
