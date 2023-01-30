@@ -16,11 +16,9 @@ SOLR_VERSION=8.11.2
 SOLR_PKG=${PKGS}/solr-${SOLR_VERSION}.tgz
 SOLR_URL=http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.tgz
 
-JTS_VERSION=1.19.0
+JTS_VERSION=1.15.0
 JTS_CORE_PKG=${PKGS}/jts-core-${JTS_VERSION}.jar
-JTS_CORE_URL=https://github.com/locationtech/jts/releases/download/${JTS_VERSION}/jts-core-${JTS_VERSION}.jar
-JTS_IO_COMMON_PKG=${PKGS}/jts-io-common-${JTS_VERSION}.jar
-JTS_IO_COMMON_URL=https://github.com/locationtech/jts/releases/download/${JTS_VERSION}/jts-core-${JTS_VERSION}.jar
+JTS_CORE_URL=https://mvnrepository.com/artifact/org.locationtech.jts/jts-core/${JTS_VERSION}/jts-core-${JTS_VERSION}.jar
 
 SOLR_INSTALL_BASE=${PREFIX}/solr-${SOLR_VERSION}
 SOLR_BASE=${PREFIX}/solr
@@ -38,8 +36,4 @@ fi
 if [[ ! -e ${JTS_CORE_PKG} ]]; then
   curl -fsSL ${JTS_CORE_URL} -o ${JTS_CORE_PKG}
 fi
-cp ${JTS_IO_COMMON_PKG} ${SOLR_WEBINF_LIB}
-if [[ ! -e ${JTS_IO_COMMON_PKG} ]]; then
-  curl -fsSL ${JTS_IO_COMMON_URL} -o ${JTS_IO_COMMON_PKG}
-fi
-cp ${JTS_IO_COMMON_PKG} ${SOLR_WEBINF_LIB}
+cp ${JTS_CORE_PKG} ${SOLR_WEBINF_LIB}
