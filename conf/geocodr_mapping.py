@@ -41,7 +41,7 @@ def replace_strasse(field):
   A boost must be applied to the field, not this wrapped result.
   """
   return PatternReplace(
-    '′', '’', PatternReplace(
+    '\'', '’', PatternReplace(
       '´', '’', PatternReplace(
         '`', '’', PatternReplace(
           '‘', '’', PatternReplace(

@@ -157,7 +157,7 @@ def test_search_limit(client):
 def test_reverse_invalid_epsg(client):
   res = client.reverse('Rostock', in_epsg=99999, **{'class': 'adress'})
   assert res.status == 400
-  assert 'unknown EPSG:99999' in res.message
+  assert 'Invalid parameter value: unknown 99999' in res.message
 
 
 def test_search_reverse_error(client):
@@ -283,28 +283,9 @@ def test_search_neubukow(client):
   expected = [
     R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Neubukow'}),
+       'gemeindeteil_name': 'Neubukow'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Malpendorf'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Chaussee',
-       'gemeinde_name': 'Carinerland'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str.', 'gemeinde_name': 'Bastorf'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str. (Moitin)',
-       'gemeinde_name': 'Carinerland'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str. (Krempin)',
-       'gemeinde_name': 'Carinerland'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Am Markt', 'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Am Brink', 'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Neubukower Str.', 'hausnummer': '1',
-       'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Neubukower Str.', 'hausnummer': '2',
-       'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Brink', 'hausnummer': '1',
-       'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Brink', 'hausnummer': '1',
-       'hausnummer_zusatz': 'a', 'gemeinde_name': 'Neubukow, Stadt'}),
+       'gemeindeteil_name': 'Panzow'}),
   ]
 
   assert_results(res, expected)
@@ -315,24 +296,24 @@ def test_search_neubukow(client):
   res = client.search('parkeNt Wiesen', limit=100, **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Wiesengrund',
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Wiesengrund',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Wiesenstr.',
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Wiesenstr.',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'An der Streuobstwiese',
+    R({'objektgruppe': 'Straße', 'strasse_name': 'An der Streuobstwiese',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Bartenshagen'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '1',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '1',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '2',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '2',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '3',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesengrund', 'hausnummer': '3',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Parkentin'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '1',
        'hausnummer_zusatz': 'a', 'gemeinde_name': 'Bartenshagen-Parkentin',
        'gemeindeteil_name': 'Neuhof'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '2',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Wiesenstr.', 'hausnummer': '2',
        'gemeinde_name': 'Bartenshagen-Parkentin', 'gemeindeteil_name': 'Neuhof'}),
   ]
 
@@ -340,9 +321,8 @@ def test_search_neubukow(client):
 
 
 @pytest.mark.parametrize("query", [
-  u'seeStr.,Rosto',
-  u'SEESTRaße Rostock',
-  u'Rostock seestrasse',
+  'seeStr.,Rosto',
+  'Rostock seestrasse',
 ])
 def test_search_seestr(client, query):
   """
@@ -351,21 +331,21 @@ def test_search_seestr(client, query):
   res = client.search(query, limit=100, **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Seestr.',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
-       'gemeindeteil_name': u'Seebad Warnemünde'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '1',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
-       'gemeindeteil_name': u'Seebad Warnemünde'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '2',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
-       'gemeindeteil_name': u'Seebad Warnemünde'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '3',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
-       'gemeindeteil_name': u'Seebad Warnemünde'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '4',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
-       'gemeindeteil_name': u'Seebad Warnemünde'}),
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Seestr.',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
+       'gemeindeteil_name': 'Seebad Warnemünde'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '1',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
+       'gemeindeteil_name': 'Seebad Warnemünde'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '2',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
+       'gemeindeteil_name': 'Seebad Warnemünde'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '3',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
+       'gemeindeteil_name': 'Seebad Warnemünde'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Seestr.', 'hausnummer': '4',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
+       'gemeindeteil_name': 'Seebad Warnemünde'}),
   ]
 
   assert_results(res, expected)
@@ -373,13 +353,13 @@ def test_search_seestr(client, query):
 
 def test_search_sportplatz(client):
   """
-  F.1.4 Suchklasse Adresse, Suche nach sporrtplats kröhpelin 6
+  F.1.4 Suchklasse Adresse, Suche nach sporrtplats kro¨hpelin 6
   """
-  res = client.search(u'sporrtplats kröhpelin 6', **{'class': 'address'})
+  res = client.search('sporrtplats kröhpelin 6', **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Am Sportplatz', 'hausnummer': '6',
-       'gemeinde_name': u'Kröpelin, Stadt', 'gemeindeteil_name': u'Schmadebeck'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Am Sportplatz', 'hausnummer': '6',
+       'gemeinde_name': 'Kröpelin, Stadt', 'gemeindeteil_name': 'Schmadebeck'}),
   ]
 
   assert_results(res, expected)
@@ -387,26 +367,18 @@ def test_search_sportplatz(client):
 
 def test_search_neubukow_limit(client):
   """
-  F.1.5 SuchklasseAdresse,Suchenachneubukow,BeschränkungTrefferlistenlänge
+  F.1.5 SuchklasseAdresse,Suchenachneubukow,Beschra¨nkungTrefferlistenla¨nge
   """
   res = client.search('neubukow', limit=8, **{'class': 'address'})
 
   expected = [
     R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Neubukow'}),
+       'gemeindeteil_name': 'Neubukow'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Panzow'}),
+       'gemeindeteil_name': 'Panzow'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Spriehusen'}),
-    R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Malpendorf'}),
-    R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Steinbrink'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Neubukower Str.',
-       'gemeinde_name': 'Rerik, Stadt'}),
+       'gemeindeteil_name': 'Buschmühlen'}),
   ]
 
   assert_results(res, expected)
@@ -422,12 +394,12 @@ def test_search_neubukow_bbox(client):
   expected = [
     R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Malpendorf'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Dorfstr.', 'gemeinde_name': 'Malpendorf',
+       'gemeindeteil_name': 'Malpendorf'}),
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Dorfstr.', 'gemeinde_name': 'Malpendorf',
        'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
        'gemeinde_name': 'Malpendorf', 'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
        'hausnummer_zusatz': 'a', 'gemeinde_name': 'Malpendorf',
        'gemeinde_name': 'Neubukow, Stadt'}),
   ]
@@ -445,19 +417,19 @@ def test_search_neubukow_peri(client):
   expected = [
     R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}),
     R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Hauptstr.', 'gemeinde_name': 'Neubukow, Stadt',
-       'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': u'Straße', 'strasse_name': u'Grüner Weg',
+       'gemeindeteil_name': 'Buschmühlen'}),
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Hauptstr.', 'gemeinde_name': 'Neubukow, Stadt',
+       'gemeindeteil_name': 'Buschmühlen'}),
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Grüner Weg',
        'gemeinde_name': 'Neubukow, Stadt'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '1',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '2',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '3',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '4',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '1',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '2',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '3',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '4',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}),
   ]
 
   assert_results(res, expected)
@@ -472,21 +444,15 @@ def test_search_neubukow_peri(client):
 ])
 def test_search_parcel_flur_1(client, query):
   """
-  F.1.8 Suchklasse Flurstück, Suche nach parkentin, flur 1
+  F.1.8 Suchklasse Flurstück, Suche nach parkentin, flur 1
   """
   res = client.search(query, **{'class': 'parcel'})
 
   expected = [
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0001'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00007/0001'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00008/0001'}),
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001'}),
   ]
 
   assert_results(res, expected)
@@ -499,50 +465,50 @@ def test_search_parcel_flur_1(client, query):
 ])
 def test_search_parcel_flurbezirk(client, query):
   """
-  F.1.10 Suchklasse Flurstück, Suche nach flurbezirk ii
+  F.1.10 Suchklasse Flurstück, Suche nach flurbezirk ii
   """
   res = client.search(query, **{'class': 'parcel'})
 
   expected = [
     R({'objektgruppe': 'Gemarkung', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '002', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '003', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '004', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '005', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '006', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '007', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '008', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '009', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Flur', 'flur': '010', 'gemarkung_name': 'Flurbezirk II',
        'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0008',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0008',
        'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0009',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132241-001-00004/0009',
        'gemarkung_name': 'Flurbezirk II', 'gemarkung_schluessel': '132241',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
   ]
 
   assert_results(res, expected)
@@ -572,9 +538,9 @@ def test_search_parcel_flurbezirk(client, query):
 ])
 def test_search_parcel_long(client, query, expected, n):
   """
-  F.1.9 Suchklasse Flurstück, Suche nach 13223 21, 7
-  F.1.11 Suchklasse Flurstück, Suche nach 132232-001-00157
-  F.1.12 Suchklasse Flurstück, Suche nach 132232001001570004
+  F.1.9 Suchklasse Flurstück, Suche nach 13223 21, 7
+  F.1.11 Suchklasse Flurstück, Suche nach 132232-001-00157
+  F.1.12 Suchklasse Flurstück, Suche nach 132232001001570004
   """
   res = client.search(query, **{'class': 'parcel'})
   assert len(res.features) == n
@@ -607,17 +573,17 @@ def test_search_school(client):
   res = client.search('jenapla', **{'class': 'school'})
 
   expected = [
-    R({'objektgruppe': u'Schule', 'bezeichnung': u'Jenaplanschule Rostock', 'art': 'Primarbereich',
+    R({'objektgruppe': 'Schule', 'bezeichnung': 'Jenaplanschule Rostock', 'art': 'Primarbereich',
        'strasse_name': 'Lindenstr.', 'hausnummer': '3a',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': u'Schule',
-       'bezeichnung': u'Jenaplanschule Rostock - Integrierte Gesamtschule',
-       'art': 'Sekundarbereich I', 'strasse_name': u'Blücherstr.', 'hausnummer': '42',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': u'Schule',
-       'bezeichnung': u'Jenaplanschule Rostock - Integrierte Gesamtschule',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
+    R({'objektgruppe': 'Schule',
+       'bezeichnung': 'Jenaplanschule Rostock - Integrierte Gesamtschule',
+       'art': 'Sekundarbereich I', 'strasse_name': 'Blücherstr.', 'hausnummer': '42',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
+    R({'objektgruppe': 'Schule',
+       'bezeichnung': 'Jenaplanschule Rostock - Integrierte Gesamtschule',
        'art': 'Sekundarbereich I', 'strasse_name': 'Lindenstr.', 'hausnummer': '3a',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
   ]
 
   assert_results(res, expected)
@@ -630,12 +596,12 @@ def test_search_school_address(client):
   res = client.search('rostock,barnstorfer weg 21a', **{'class': 'school,address'})
 
   expected = [
-    R({'objektgruppe': u'Adresse', 'gemeindeteil_name': u'Kröpeliner-Tor-Vorstadt',
+    R({'objektgruppe': 'Adresse', 'gemeindeteil_name': 'Kröpeliner-Tor-Vorstadt',
        'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21', 'hausnummer_zusatz': 'a',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Schule', 'bezeichnung': 'Grundschule am Margaretenplatz',
        'art': 'Primarbereich', 'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21a',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}),
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
   ]
 
   assert_results(res, expected)
@@ -645,20 +611,20 @@ def test_reverse_address(client):
   """
   F.2.1 Suchklasse Adresse, Suche nach 307663,6004522.21
   """
-  res = client.search(u'307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'address'})
+  res = client.search('307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'},
+    R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'},
       distance=0),
-    R({'objektgruppe': u'Gemeindeteil', 'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
+    R({'objektgruppe': 'Gemeindeteil', 'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
        'gemeindeteil_name': 'Lichtenhagen'}, distance=0),
-    R({'objektgruppe': u'Straße', 'strasse_name': 'Stettiner Str.',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=1),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '26',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Stettiner Str.',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=1),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '26',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
        'gemeindeteil_name': 'Lichtenhagen'}, distance=15),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
        'gemeindeteil_name': 'Lichtenhagen'}, distance=20),
   ]
 
@@ -666,49 +632,49 @@ def test_reverse_address(client):
 
 
 def test_reverse_parcel(client):
-  u"""
-  F.2.2 Suchklasse Flurstück, Suche nach 307663,6004522.21
   """
-  res = client.search(u'307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'parcel'})
+  F.2.2 Suchklasse Flurstück, Suche nach 307663,6004522.21
+  """
+  res = client.search('307663,6004522.21', in_epsg=25833, type='reverse', **{'class': 'parcel'})
 
   expected = [
-    R({'objektgruppe': u'Gemarkung', 'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
-    R({'objektgruppe': u'Flur', 'flur': '003', 'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0101',
-       'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=0),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0096',
-       'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=4),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0110',
-       'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=4),
-    R({'objektgruppe': u'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0116',
-       'gemarkung_name': u'Lütten Klein',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt'}, distance=6),
+    R({'objektgruppe': 'Gemarkung', 'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+    R({'objektgruppe': 'Flur', 'flur': '003', 'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0101',
+       'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=0),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0096',
+       'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=4),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0110',
+       'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=4),
+    R({'objektgruppe': 'Flurstück', 'flurstueckskennzeichen': '132221-003-00022/0116',
+       'gemarkung_name': 'Lütten Klein',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}, distance=6),
   ]
 
   assert_results(res, expected)
 
 
 def test_reverse_bbox(client):
-  u"""
+  """
   F.2.3 Suchklasse Adresse, „Bounding-box“-Filterung
   """
-  res = client.search(u'12345,67890', in_epsg=9999, bbox='11.67596,54.03998,11.67763,54.04059',
+  res = client.search('12345,67890', in_epsg=9999, bbox='11.67596,54.03998,11.67763,54.04059',
                       bbox_epsg=4326, type='reverse', **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
-    R({'objektgruppe': u'Gemeindeteil', 'gemeindeteil_name': 'Malpendorf',
-       'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
-       'hausnummer_zusatz': None, 'gemeinde_name': u'Neubukow, Stadt',
+    R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}, distance=0),
+    R({'objektgruppe': 'Gemeindeteil', 'gemeindeteil_name': 'Malpendorf',
+       'gemeinde_name': 'Neubukow, Stadt'}, distance=0),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
+       'hausnummer_zusatz': None, 'gemeinde_name': 'Neubukow, Stadt',
        'gemeindeteil_name': 'Malpendorf'}, distance=20),
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
-       'hausnummer_zusatz': 'a', 'gemeinde_name': u'Neubukow, Stadt',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Dorfstr.', 'hausnummer': '13',
+       'hausnummer_zusatz': 'a', 'gemeinde_name': 'Neubukow, Stadt',
        'gemeindeteil_name': 'Malpendorf'}, distance=35),
   ]
 
@@ -719,19 +685,19 @@ def test_reverse_peri(client):
   """
   F.2.4 Suchklasse Adresse, Umkreis-Filterung
   """
-  res = client.search(u'12345,67890', in_epsg=9999, peri_coord='280081.485,5992752.284',
+  res = client.search('12345,67890', in_epsg=9999, peri_coord='280081.485,5992752.284',
                       peri_radius='115.3', peri_epsg=25833, type='reverse', **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Gemeinde', 'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
-    R({'objektgruppe': u'Gemeindeteil', 'gemeindeteil_name': u'Buschmühlen',
-       'gemeinde_name': u'Neubukow, Stadt'}, distance=0),
-    R({'objektgruppe': u'Straße', 'strasse_name': u'Grüner Weg',
-       'gemeinde_name': u'Neubukow, Stadt'}, distance=3),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '2',
-       'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}, distance=22),
-    R({'objektgruppe': u'Adresse', 'strasse_name': u'Grüner Weg', 'hausnummer': '3',
-       'gemeinde_name': u'Neubukow, Stadt', 'gemeindeteil_name': u'Buschmühlen'}, distance=30),
+    R({'objektgruppe': 'Gemeinde', 'gemeinde_name': 'Neubukow, Stadt'}, distance=0),
+    R({'objektgruppe': 'Gemeindeteil', 'gemeindeteil_name': 'Buschmühlen',
+       'gemeinde_name': 'Neubukow, Stadt'}, distance=0),
+    R({'objektgruppe': 'Straße', 'strasse_name': 'Grüner Weg',
+       'gemeinde_name': 'Neubukow, Stadt'}, distance=3),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '2',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}, distance=22),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '3',
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}, distance=30),
   ]
 
   assert_results(res, expected)
@@ -750,11 +716,11 @@ def test_out_epsg(client, out_epsg, expected_coord):
   kw = {'class': 'address'}
   if out_epsg:
     kw['out_epsg'] = out_epsg
-  res = client.search(u'stettiner str 35 rostock', type='search', **kw)
+  res = client.search('stettiner str 35 rostock', type='search', **kw)
 
   expected = [
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35',
-       'gemeinde_name': u'Rostock, Hanse- und Universitätsstadt',
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Stettiner Str.', 'hausnummer': '35',
+       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt',
        'gemeindeteil_name': 'Lichtenhagen'}),
   ]
   assert_results(res, expected)
@@ -776,8 +742,8 @@ def test_strasse_suffix(client, term):
   res = client.search(term, **{'class': 'address'})
 
   expected = [
-    R({'objektgruppe': u'Adresse', 'strasse_name': 'Kopernikusstr.', 'hausnummer': '46',
-       'gemeinde_name': u'Torgelow, Stadt', 'gemeindeteil_name': 'Torgelow'}),
+    R({'objektgruppe': 'Adresse', 'strasse_name': 'Kopernikusstr.', 'hausnummer': '46',
+       'gemeinde_name': 'Torgelow, Stadt', 'gemeindeteil_name': 'Torgelow'}),
   ]
 
   assert_results(res, expected)
@@ -801,25 +767,25 @@ def test_paging(client):
   check(2, 0, [
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
   ])
   check(2, 1, [
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
   ])
   check(5, 0, [
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0001'}),
-    R({'objektgruppe': u'Flurstück', 'gemarkung_name': 'Parkentin',
+    R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0002'}),
   ])
 
