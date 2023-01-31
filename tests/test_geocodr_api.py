@@ -157,7 +157,7 @@ def test_search_limit(client):
 def test_reverse_invalid_epsg(client):
   res = client.reverse('Rostock', in_epsg=99999, **{'class': 'adress'})
   assert res.status == 400
-  assert 'Invalid parameter value: unknown 99999' in res.message
+  assert 'unknown EPSG:99999' in res.message
 
 
 def test_search_reverse_error(client):
@@ -573,16 +573,8 @@ def test_search_school(client):
   res = client.search('jenapla', **{'class': 'school'})
 
   expected = [
-    R({'objektgruppe': 'Schule', 'bezeichnung': 'Jenaplanschule Rostock', 'art': 'Primarbereich',
-       'strasse_name': 'Lindenstr.', 'hausnummer': '3a',
-       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Schule',
-       'bezeichnung': 'Jenaplanschule Rostock - Integrierte Gesamtschule',
-       'art': 'Sekundarbereich I', 'strasse_name': 'Blücherstr.', 'hausnummer': '42',
-       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': 'Schule',
-       'bezeichnung': 'Jenaplanschule Rostock - Integrierte Gesamtschule',
-       'art': 'Sekundarbereich I', 'strasse_name': 'Lindenstr.', 'hausnummer': '3a',
+       'bezeichnung': 'Jenaplanschule Rostock – Integrierte Gesamtschule',
        'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
   ]
 
@@ -600,7 +592,7 @@ def test_search_school_address(client):
        'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21', 'hausnummer_zusatz': 'a',
        'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
     R({'objektgruppe': 'Schule', 'bezeichnung': 'Grundschule am Margaretenplatz',
-       'art': 'Primarbereich', 'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21a',
+       'art': 'Grundschule',
        'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
   ]
 
@@ -693,11 +685,9 @@ def test_reverse_peri(client):
     R({'objektgruppe': 'Gemeindeteil', 'gemeindeteil_name': 'Buschmühlen',
        'gemeinde_name': 'Neubukow, Stadt'}, distance=0),
     R({'objektgruppe': 'Straße', 'strasse_name': 'Grüner Weg',
-       'gemeinde_name': 'Neubukow, Stadt'}, distance=3),
+       'gemeinde_name': 'Neubukow, Stadt'}, distance=2),
     R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '2',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}, distance=22),
-    R({'objektgruppe': 'Adresse', 'strasse_name': 'Grüner Weg', 'hausnummer': '3',
-       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}, distance=30),
+       'gemeinde_name': 'Neubukow, Stadt', 'gemeindeteil_name': 'Buschmühlen'}, distance=21),
   ]
 
   assert_results(res, expected)
