@@ -8,9 +8,9 @@ set -u # strict mode
 #
 # % CSV_OUTDIR=/tmp/geocodr-csv PGHOST=server PGDATABASE=data PGUSER=dbuser PGPASSWORD=pw DBSCHEMA=public geocodr-reindex.sh
 
-/usr/local/geocodr-mv/scripts/geocodr-pg2csv-02.sh
+/usr/local/geocodr-mv/geocodr-mv/scripts/geocodr-pg2csv-02.sh
 
-cat <<EOF | xargs -I % /usr/local/geocodr/bin/geocodr-post --url http://localhost:8983/solr --csv $CSV_OUTDIR/%.csv --collection %
+cat <<EOF | xargs -I % /usr/local/geocodr-mv/virtualenv/bin/geocodr-post --url http://localhost:8983/solr --csv $CSV_OUTDIR/%.csv --collection %
 orka-app
 stadtteillotse
 EOF
