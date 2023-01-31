@@ -758,21 +758,21 @@ def test_paging(client):
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001'}),
   ])
   check(2, 1, [
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002'}),
   ])
   check(5, 0, [
     R({'objektgruppe': 'Flur', 'flur': '001', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'gemeinde_name': 'Bartenshagen-Parkentin'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001/0000'}),
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00001'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
-       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002/0000'}),
+       'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00002'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
        'gemarkung_schluessel': '132090', 'flurstueckskennzeichen': '132090-001-00003/0001'}),
     R({'objektgruppe': 'Flurstück', 'gemarkung_name': 'Parkentin',
