@@ -101,5 +101,5 @@ Automatic reindex
 Create ``/etc/cron.d/geocodr-reindex`` to automatically reindex data every night::
 
 
-    32 3 * * * geocodr export CSV_OUTDIR=/tmp/geocodr-csv PGHOST=localhost PGDATABASE=data PGUSER=user PGPASSWORD=password DBSCHEMA=public; /usr/local/geocodr-mv/scripts/geocodr-reindex.sh >> /var/log/geocodr/reindex.log 2>&1
+    32 3 * * * geocodr export CSV_OUTDIR=/tmp/geocodr-csv CSV_INDIR=/tmp/geocodr-csv PGHOST=localhost PGDATABASE=data PGUSER=user PGPASSWORD=password DBSCHEMA=public; /usr/local/geocodr-mv/scripts/geocodr-reindex.sh >> /var/log/geocodr/reindex.log 2>&1
 
