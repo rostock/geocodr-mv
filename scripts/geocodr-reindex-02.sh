@@ -12,6 +12,5 @@ set -u # strict mode
 
 cat <<EOF | xargs -I % /usr/local/geocodr-mv/virtualenv/bin/geocodr-post --url http://localhost:8983/solr --csv $CSV_INDIR/%.csv --collection %
 orka-app
-stadtteillotse
 EOF
 

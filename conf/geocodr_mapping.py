@@ -852,29 +852,3 @@ class OrkaApp(Collection):
       return ', '.join(parts)
     else:
       return prop['category_title']
-
-
-class Stadtteillotse(Collection):
-  class_ = 'stadtteillotse'
-  class_title = 'Stadtteillotse Rostock'
-  name = 'stadtteillotse'
-  title = 'Stadtteillotse Rostock'
-  fields = ('name', 'category', 'category_title')
-  qfields = (
-    SimpleField('name') ^ 4.2,
-    NGramField('name_ngram') ^ 1.8,
-    SimpleField('category') ^ 0.5,
-    NGramField('category_ngram') ^ 0.3,
-    SimpleField('category_title') ^ 0.5,
-    NGramField('category_title_ngram') ^ 0.3,
-  )
-  sort = 'score DESC, category ASC, name ASC'
-  sort_fields = ('category', 'name')
-  collection_rank = 2.5
-
-  def to_title(self, prop):
-    if prop['name']:
-      parts = [prop['category_title'], prop['name']]
-      return ', '.join(parts)
-    else:
-      return prop['category_title']

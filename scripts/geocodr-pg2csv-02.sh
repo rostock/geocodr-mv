@@ -42,16 +42,3 @@ FROM ${DBSCHEMA}.geocodr WHERE orka_app IS TRUE AND category IS NOT NULL
 ) TO STDOUT WITH CSV HEADER;
 END
 )"
-
-pg2csv $CSV_OUTDIR/stadtteillotse.csv "$(cat << END
-COPY (SELECT
-  id,
-  ST_AsText(geometrie) AS geometrie,
-  name,
-  category,
-  category_title,
-  to_jsonb(geocodr) - 'geometrie' AS json
-FROM ${DBSCHEMA}.geocodr WHERE stadtteillotse IS TRUE AND category IS NOT NULL
-) TO STDOUT WITH CSV HEADER;
-END
-)"
