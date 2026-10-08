@@ -566,39 +566,6 @@ def test_search_parcel_short(client, query, expected, at_least):
     assert False, '%s not found in %d results' % (expected, len(res.features))
 
 
-def test_search_school(client):
-  """
-  F.1.13 Suchklasse Schule, Suche nach jenapla
-  """
-  res = client.search('jenapla', **{'class': 'school'})
-
-  expected = [
-    R({'objektgruppe': 'Schule',
-       'bezeichnung': 'Jenaplanschule Rostock – Integrierte Gesamtschule',
-       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
-  ]
-
-  assert_results(res, expected)
-
-
-def test_search_school_address(client):
-  """
-  F.1.14 Suchklasse Adresse und Suchklasse Schule, Suche nach rostock,barnstorfer weg 21a
-  """
-  res = client.search('rostock,barnstorfer weg 21a', **{'class': 'school,address'})
-
-  expected = [
-    R({'objektgruppe': 'Adresse', 'gemeindeteil_name': 'Kröpeliner-Tor-Vorstadt',
-       'strasse_name': 'Barnstorfer Weg', 'hausnummer': '21', 'hausnummer_zusatz': 'a',
-       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
-    R({'objektgruppe': 'Schule', 'bezeichnung': 'Grundschule am Margaretenplatz',
-       'art': 'Grundschule',
-       'gemeinde_name': 'Rostock, Hanse- und Universitätsstadt'}),
-  ]
-
-  assert_results(res, expected)
-
-
 def test_reverse_address(client):
   """
   F.2.1 Suchklasse Adresse, Suche nach 307663,6004522.21

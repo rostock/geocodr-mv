@@ -11,8 +11,6 @@ set -u # strict mode
 /usr/local/geocodr-mv/geocodr-mv/scripts/geocodr-pg2csv.sh
 
 cat <<EOF | xargs -I % /usr/local/geocodr-mv/virtualenv/bin/geocodr-post --url http://localhost:8983/solr --csv $CSV_INDIR/%.csv --collection %
-flurstueckseigentuemer
-schulen
 adressen
 fluren
 gemarkungen
